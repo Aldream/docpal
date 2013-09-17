@@ -51,12 +51,26 @@ JupiterNode.prototype.generate = function(op)
  * Apply an operation received from another node.
  * Potential conflicts with unacknowledged local operations are handled by applying the Transformation Rules.
  * Parameters:
- *	- op (Operation):	Operation from another node to apply on the local version.
+ *	- msg ({num: int, op: Operation}):	Message from another node to apply on the local version.
  * Output: /
  */
-JupiterNode.prototype.receive = function(op)
+JupiterNode.prototype.receive = function(msg)
 {
-  // TODO
+	// TODO: if (this.otherMessages != msg.num) throw ERROR
+	
+	// Discarding acknowledged messages:
+	while (this.outgoing.length > 0 && this.outgoing[0] < msg.num) {
+		this.outgoing.shift();
+	}
+	
+	// Transforming the incoming operations and the one in the queue:
+	for (var i=0; i < this.outgoing.length; i++) {
+		[msg.op, this.outgoing[i]] = Operation.xform(msg.op, this.outgoing[i]);
+	}
+	
+	// Applying the operation locally:
+	Operation.apply(this.data, msg.op);
+	this.otherMessages++;
 };
 
 /**
