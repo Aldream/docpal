@@ -34,7 +34,15 @@ function JupiterNode(id, data) {
  */
 JupiterNode.prototype.generate = function(op)
 {
-
+	// Applying the operation locally:
+	Operation.apply(this.data, op);
+	
+	// Sending the operation to inform the rest of the system:
+	this.send(op);
+	
+	// Adding it to the list of unacknowledged operations:
+	this.outgoing.push({num: this.nodeMessages ; op: op});
+	this.nodeMessages++;
 };
 
 /**
