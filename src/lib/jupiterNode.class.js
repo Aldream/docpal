@@ -25,20 +25,20 @@ function JupiterNode(id, data) {
 }
 
 /**
- * Generate
+ * generate
  * ====
  * Apply a local operation and send a message to inform the system in order to propagate it.
  * Parameters:
  *	- op (Operation):	Local operation to apply and send
  * Output: /
  */
-JupiterNode.prototype.Generate = function(/* Operation */ op)
+JupiterNode.prototype.generate = function(op)
 {
 
 };
 
 /**
- * Receive
+ * receive
  * ====
  * Apply an operation received from another node.
  * Potential conflicts with unacknowledged local operations are handled by applying the Transformation Rules.
@@ -46,7 +46,19 @@ JupiterNode.prototype.Generate = function(/* Operation */ op)
  *	- op (Operation):	Operation from another node to apply on the local version.
  * Output: /
  */
-JupiterNode.prototype.Receive = function(/* Operation */ op)
+JupiterNode.prototype.receive = function(op)
 {
   // TODO
 };
+
+/**
+ * send (ABSTRACT)
+ * ====
+ * Send a message to inform of a local operation.
+ * If the node is a client, the message is sent to the coordinating server.
+ * If the node is the server, the message is sent to all the client nodes except for the one the operation comes from.
+ * Parameters:
+ *	- op (Operation):	Operation.
+ * Output: /
+ */
+JupiterNode.prototype.send = null;
