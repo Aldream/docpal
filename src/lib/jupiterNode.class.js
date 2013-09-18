@@ -35,7 +35,7 @@ function JupiterNode(id, data) {
 JupiterNode.prototype.generate = function(msg)
 {
 	// Applying the operation locally:
-	Operation.apply(this.data, msg);
+	this.data = JupiterOp.apply(this.data, msg);
 	
 	// Sending the operation to inform the rest of the system:
 	this.send(msg);
@@ -65,11 +65,11 @@ JupiterNode.prototype.receive = function(msg)
 	
 	// Transforming the incoming operations and the one in the queue:
 	for (var i=0; i < this.outgoing.length; i++) {
-		Operation.xform(msg, this.outgoing[i].msg);
+		JupiterOp.xform(msg, this.outgoing[i].msg);
 	}
 	
 	// Applying the operation locally:
-	Operation.apply(this.data, msg);
+	this.data = JupiterOp.apply(this.data, msg);
 	this.otherMessages++;
 };
 
