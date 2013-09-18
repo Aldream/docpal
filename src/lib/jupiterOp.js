@@ -12,17 +12,29 @@ var JupiterOp = {
 	 * Table identifying the various operation handled by the system
 	 */
 	operationsTable: {
+		// Null Operation (No-change)
+			/**
+			 * noOp
+			 * ====
+			 * Does nothing (when the incoming change has already be done locally for instance)
+			 * Parameters in param: /
+			 * Output: /
+			 */
+			'noOp': function doNothing(data, param) {
+				return data;
+			},
+		
 		// Text Operations (char-wise):
 			/**
-			 * cAdd
+			 * cIns
 			 * ====
-			 * Adds a given character at the chosen position.
+			 * Inserts a given character at the chosen position.
 			 * Parameters in param:
 			 *	- pos (int): 	Position
 			 *	- char (Char):	Character to add
 			 * Output: /
 			 */
-			'cAdd': function addChar(data, param) {
+			'cIns': function addChar(data, param) {
 				var	pos = secureGetParam(param, 'pos'),
 					c = secureGetParam(param, 'char');
 				if (pos !== null && c !== null) {
@@ -66,12 +78,55 @@ var JupiterOp = {
 	 * Resolves the conflicts between messages generated from the same starting state.
 	 * Returns the transformed messages allowing the two parties to reach the same final state.
 	 * Parameters:
-	 *	- localOp (JSON obj): 	Local message
-	 *	- incoOp (JSON obj):	Incoming message
-	 * Output: Couple of modified messages, leading to the same final state.
+	 *	- localMsg (JSON obj): 	Local message
+	 *	- incoMsg (JSON obj):	Incoming message
+	 * Output: / (Input operations are directly modified)
 	 */	
-	xform : function(localOp, incoOp) {
-	
+	xform : function(localMsg, incoMsg) {
+		// cIns VS cIns
+		if (localMsg.op == 'cIns' && incoMsg.op == 'cIns') {
+			var	posLoc = secureGetParam(localMsg.param, 'pos'),
+				posInc = secureGetParam(incoMsg.param, 'pos');
+			if (posLoc === null || posInc === null) { return; }
+			
+			if (posLoc >= posInc) localMsg.param.pos++; // we arbitrarily decide to place the char from the server first. 
+			else incoMsg.param.pos++;
+		}
+		
+		// cDel VS cDel
+		else if (localMsg.op == 'cDel' && incoMsg.op == 'cDel') {
+			var	posLoc = secureGetParam(localMsg.param, 'pos'),
+				posInc = secureGetParam(incoMsg.param, 'pos');
+			if (posLoc === null || posInc === null) { return; }
+			
+			if (posLoc > posInc) localMsg.param.pos--; 
+			else if (posLoc < posInc) incoMsg.param.pos--;
+			else {
+				localMsg.op = incoMsg.op = 'noOp';
+				localMsg.param = incoMsg.param = null;
+			}	
+		}
+		
+		// cDel VS cIns
+		else if (localMsg.op == 'cDel' && incoMsg.op == 'cIns') {
+			var	posLoc = secureGetParam(localMsg.param, 'pos'),
+				posInc = secureGetParam(incoMsg.param, 'pos');
+			if (posLoc === null || posInc === null) { return; }
+			
+			if (posLoc >= posInc) localMsg.param.pos++; 
+			else incoMsg.param.pos--;	
+		}
+		
+		// cIns VS cDel
+		else if (localMsg.op == 'cIns' && incoMsg.op == 'cDel') {
+			var	posLoc = secureGetParam(localMsg.param, 'pos'),
+				posInc = secureGetParam(incoMsg.param, 'pos');
+			if (posLoc === null || posInc === null) { return; }
+			
+			if (posLoc > posInc) incoMsg.param.pos++; 
+			else localMsg.param.pos--;	
+		}
+		
 	},
 
 	/**
