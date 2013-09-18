@@ -41,7 +41,7 @@ JupiterNode.prototype.generate = function(msg)
 	this.send(msg);
 	
 	// Adding it to the list of unacknowledged operations:
-	this.outgoing.push({num: this.nodeMessages ; msg: msg});
+	this.outgoing.push({num: this.nodeMessages, msg: msg});
 	this.nodeMessages++;
 };
 

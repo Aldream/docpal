@@ -21,7 +21,7 @@ var JupiterOp = {
 			 * Output: /
 			 */
 			'noOp': function doNothing(data, param) {
-				//return data;
+				return data;
 			},
 		
 		// Text Operations (char-wise):
@@ -35,12 +35,12 @@ var JupiterOp = {
 			 * Output: /
 			 */
 			'cIns': function addChar(data, param) {
-				var	pos = secureGetParam(param, 'pos'),
-					c = secureGetParam(param, 'char');
+				var	pos = JupiterOp.secureGetParam(param, 'pos'),
+					c = JupiterOp.secureGetParam(param, 'char');
 				if (pos !== null && c !== null) {
 					data = data.slice(0,pos) + c + data.slice(pos);
 				}
-				//return data;
+				return data;
 			},
 			/**
 			 * cDel
@@ -50,12 +50,12 @@ var JupiterOp = {
 			 *	- pos (int): 	Position of the deletion
 			 * Output: /
 			 */
-			'cDel' function delChar(data, param) {
-				var	pos = secureGetParam(param, 'pos');
+			'cDel': function delChar(data, param) {
+				var	pos = JupiterOp.secureGetParam(param, 'pos');
 				if (pos !== null) {
 					data = data.slice(0,pos) + data.slice(pos+1);
 				}
-				//return data;
+				return data;
 			}
 	},
 
@@ -85,8 +85,8 @@ var JupiterOp = {
 	xform : function(localMsg, incoMsg) {
 		// cIns VS cIns
 		if (localMsg.op == 'cIns' && incoMsg.op == 'cIns') {
-			var	posLoc = secureGetParam(localMsg.param, 'pos'),
-				posInc = secureGetParam(incoMsg.param, 'pos');
+			var	posLoc = JupiterOp.secureGetParam(localMsg.param, 'pos'),
+				posInc = JupiterOp.secureGetParam(incoMsg.param, 'pos');
 			if (posLoc === null || posInc === null) { return; }
 			
 			if (posLoc >= posInc) localMsg.param.pos++; // we arbitrarily decide to place the char from the server first. 
@@ -95,8 +95,8 @@ var JupiterOp = {
 		
 		// cDel VS cDel
 		else if (localMsg.op == 'cDel' && incoMsg.op == 'cDel') {
-			var	posLoc = secureGetParam(localMsg.param, 'pos'),
-				posInc = secureGetParam(incoMsg.param, 'pos');
+			var	posLoc = JupiterOp.secureGetParam(localMsg.param, 'pos'),
+				posInc = JupiterOp.secureGetParam(incoMsg.param, 'pos');
 			if (posLoc === null || posInc === null) { return; }
 			
 			if (posLoc > posInc) localMsg.param.pos--; 
@@ -109,8 +109,8 @@ var JupiterOp = {
 		
 		// cDel VS cIns
 		else if (localMsg.op == 'cDel' && incoMsg.op == 'cIns') {
-			var	posLoc = secureGetParam(localMsg.param, 'pos'),
-				posInc = secureGetParam(incoMsg.param, 'pos');
+			var	posLoc = JupiterOp.secureGetParam(localMsg.param, 'pos'),
+				posInc = JupiterOp.secureGetParam(incoMsg.param, 'pos');
 			if (posLoc === null || posInc === null) { return; }
 			
 			if (posLoc >= posInc) localMsg.param.pos++; 
@@ -119,12 +119,12 @@ var JupiterOp = {
 		
 		// cIns VS cDel
 		else if (localMsg.op == 'cIns' && incoMsg.op == 'cDel') {
-			var	posLoc = secureGetParam(localMsg.param, 'pos'),
-				posInc = secureGetParam(incoMsg.param, 'pos');
+			var	posLoc = JupiterOp.secureGetParam(localMsg.param, 'pos'),
+				posInc = JupiterOp.secureGetParam(incoMsg.param, 'pos');
 			if (posLoc === null || posInc === null) { return; }
 			
-			if (posLoc > posInc) incoMsg.param.pos++; 
-			else localMsg.param.pos--;	
+			if (posLoc > posInc) localMsg.param.pos--; 
+			else incoMsg.param.pos++;	
 		}
 		
 	},
@@ -140,9 +140,10 @@ var JupiterOp = {
 	 * Output: Value of the parameter if found
 	 */	
 	secureGetParam: function(params, name) {
-		if (typeof params !== 'Object' || params[name] === undefined) {
+		if (typeof params !== 'object' || params[name] === undefined) {
 			// TODO: Handle the error / Report it
-			alert('Uncorrect Operation!');
+			//alert('Uncorrect Operation!');
+			console.log('Uncorrect Operation!');
 			return null;
 		}
 		else {
