@@ -39,6 +39,11 @@ var JupiterOp = {
 			 * Output: /
 			 */
 			'cDel' function delChar(data, param) {
+				var	pos = secureGetParam(param, 'pos');
+				if (pos !== null) {
+					data = data.slice(0,pos) + data.slice(pos+1);
+				}
+				return data;
 			}
 	},
 
