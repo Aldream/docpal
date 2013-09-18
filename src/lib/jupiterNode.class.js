@@ -29,19 +29,19 @@ function JupiterNode(id, data) {
  * ====
  * Applies a local operation and send a message to inform the system in order to propagate it.
  * Parameters:
- *	- op (Operation):	Local operation to apply and send
+ *	- msg (JSON Object):	Local operation to apply and send
  * Output: /
  */
-JupiterNode.prototype.generate = function(op)
+JupiterNode.prototype.generate = function(msg)
 {
 	// Applying the operation locally:
-	Operation.apply(this.data, op);
+	Operation.apply(this.data, msg);
 	
 	// Sending the operation to inform the rest of the system:
-	this.send(op);
+	this.send(msg);
 	
 	// Adding it to the list of unacknowledged operations:
-	this.outgoing.push({num: this.nodeMessages ; op: op});
+	this.outgoing.push({num: this.nodeMessages ; msg: msg});
 	this.nodeMessages++;
 };
 
@@ -65,11 +65,11 @@ JupiterNode.prototype.receive = function(msg)
 	
 	// Transforming the incoming operations and the one in the queue:
 	for (var i=0; i < this.outgoing.length; i++) {
-		[msg.op, this.outgoing[i]] = Operation.xform(msg.op, this.outgoing[i]);
+		Operation.xform(msg, this.outgoing[i].msg);
 	}
 	
 	// Applying the operation locally:
-	Operation.apply(this.data, msg.op);
+	Operation.apply(this.data, msg);
 	this.otherMessages++;
 };
 

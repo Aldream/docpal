@@ -21,7 +21,7 @@ var JupiterOp = {
 			 * Output: /
 			 */
 			'noOp': function doNothing(data, param) {
-				return data;
+				//return data;
 			},
 		
 		// Text Operations (char-wise):
@@ -40,7 +40,7 @@ var JupiterOp = {
 				if (pos !== null && c !== null) {
 					data = data.slice(0,pos) + c + data.slice(pos);
 				}
-				return data;
+				//return data;
 			},
 			/**
 			 * cDel
@@ -55,7 +55,7 @@ var JupiterOp = {
 				if (pos !== null) {
 					data = data.slice(0,pos) + data.slice(pos+1);
 				}
-				return data;
+				//return data;
 			}
 	},
 
