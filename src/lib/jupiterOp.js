@@ -22,7 +22,14 @@ var JupiterOp = {
 			 *	- char (Char):	Character to add
 			 * Output: /
 			 */
-			'cAdd': function addChar(data, param) { },
+			'cAdd': function addChar(data, param) {
+				var	pos = secureGetParam(param, 'pos'),
+					c = secureGetParam(param, 'char');
+				if (pos !== null && c !== null) {
+					data = data.slice(0,pos) + c + data.slice(pos);
+				}
+				return data;
+			},
 			/**
 			 * cDel
 			 * ====
@@ -31,7 +38,8 @@ var JupiterOp = {
 			 *	- pos (int): 	Position of the deletion
 			 * Output: /
 			 */
-			'cDel' function delChar(data, param) { }
+			'cDel' function delChar(data, param) {
+			}
 	},
 
 	/**
@@ -59,5 +67,28 @@ var JupiterOp = {
 	 */	
 	xform : function(localOp, incoOp) {
 	
+	},
+
+	/**
+	 * secureGetParam
+	 * ====
+	 * Checks the parameters object to get the wanted value.
+	 * If this parameter isn't find, an error is thrown.
+	 * Parameters:
+	 *	- params (JSON obj): 	Parameters object
+	 *	- name (string):		Name of the wanted parameter
+	 * Output: Value of the parameter if found
+	 */	
+	secureGetParam: function(params, name) {
+		if (typeof params !== 'Object' || params[name] === undefined) {
+			// TODO: Handle the error / Report it
+			alert('Uncorrect Operation!');
+			return null;
+		}
+		else {
+			return params[name];
+		}
+		
+		
 	}
 };
