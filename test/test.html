@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>docpal - Unit Tests</title>
+		<link rel="stylesheet" href="qunit-1.12.0.css">
+		<script src="qunit-1.12.0.js"></script>
+		<script src="../src/lib/jupiterOp.js"></script>
+		<script src="../src/lib/jupiterNode.class.js"></script>
+		<script>
+			test("JupiterOp - Handling operations parameters (secureGetParam)", function() {
+				expect(3);
+				
+				var paramTest = {exist: true};
+				var paramTestWrong = 'not an JSON object';
+				equal(JupiterOp.secureGetParam(paramTest, 'exist'), true);
+				equal(JupiterOp.secureGetParam(paramTest, 'not-exist'), null);
+				equal(JupiterOp.secureGetParam(paramTestWrong, 'whatever'), null);
+			});
+			
+			test("JupiterOp - Operation Char-Insert (cIns)", function() {
+				expect(5);
+				
+				var data = 'abc';
+				var msgOp = {op: 'cIns', param: {pos:0, char:"e"}};
+				equal(JupiterOp.apply(data, msgOp), 'eabc');
+				equal(JupiterOp.apply('', msgOp), 'e');
+				msgOp.param.pos = 1;
+				equal(JupiterOp.apply(data, msgOp), 'aebc');
+				msgOp.param.pos = 3;
+				equal(JupiterOp.apply(data, msgOp), 'abce');
+				msgOp.param.char = 1;
+				equal(JupiterOp.apply(data, msgOp), 'abc1');
+			});
+			
+			test("JupiterOp - Operation Char-Delete (cDel)", function() {
+				expect(4);
+				
+				var data = 'abc';
+				var msgOp = {op: 'cDel', param: {pos:0}};
+				equal(JupiterOp.apply(data, msgOp), 'bc');
+				equal(JupiterOp.apply('a', msgOp), '');
+				msgOp.param.pos = 1;
+				equal(JupiterOp.apply(data, msgOp), 'ac');
+				msgOp.param.pos = 2;
+				equal(JupiterOp.apply(data, msgOp), 'ab');
+			});
+			
+			test("JupiterOp - Transformations Rules (xform) - Couples {cIns,cDels}", function() {
+				expect(22);
+
+				// cIns VS cIns
+				var locOp = {op: 'cIns', param: {pos:0, char:"l"}};
+				var incOp = {op: 'cIns', param: {pos:1, char:"i"}};
+				JupiterOp.xform(locOp, incOp);
+				equal(locOp.param.pos, 0);
+				equal(incOp.param.pos, 2);
+				
+				JupiterOp.xform(incOp, locOp);
+				equal(locOp.param.pos, 0);
+				equal(incOp.param.pos, 3);
+				
+				incOp.param.pos = 0;
+				JupiterOp.xform(locOp, incOp);
+				equal(locOp.param.pos, 1);
+				equal(incOp.param.pos, 0);
+				
+				// cDel VS cDel
+				locOp = {op: 'cDel', param: {pos:0}};
+				incOp = {op: 'cDel', param: {pos:1}};
+				JupiterOp.xform(locOp, incOp);
+				equal(locOp.param.pos, 0);
+				equal(incOp.param.pos, 0);
+				
+				locOp.param.pos = 2;
+				JupiterOp.xform(locOp, incOp);
+				equal(locOp.param.pos, 1);
+				equal(incOp.param.pos, 0);
+				
+				locOp.param.pos = 0;
+				JupiterOp.xform(incOp, locOp);
+				equal(locOp.param, null);
+				equal(incOp.param, null);
+				equal(locOp.op, 'noOp');
+				equal(incOp.op, 'noOp');
+				
+				//cDel VS cIns
+				locOp = {op: 'cDel', param: {pos:0}};
+				incOp = {op: 'cIns', param: {pos:1, char:"i"}};
+				JupiterOp.xform(locOp, incOp);
+				equal(locOp.param.pos, 0);
+				equal(incOp.param.pos, 0);
+				
+				locOp.param.pos = 2;
+				JupiterOp.xform(locOp, incOp);
+				equal(locOp.param.pos, 3);
+				equal(incOp.param.pos, 0);
+				
+				// cIns VS cDel
+				locOp = {op: 'cIns', param: {pos:0, char:"l"}};
+				incOp = {op: 'cDel', param: {pos:1}};
+				JupiterOp.xform(locOp, incOp);
+				equal(locOp.param.pos, 0);
+				equal(incOp.param.pos, 2);
+				
+				locOp.param.pos = 4;
+				JupiterOp.xform(locOp, incOp);
+				equal(locOp.param.pos, 3);
+				equal(incOp.param.pos, 2);
+				
+			});
+			
+			test("JupiterNode - Generate Operation", function() {
+				expect(2);
+				var data = 'abc';
+				var node = new JupiterNode(0, data);
+				
+				var msgOp = {op: 'cIns', param: {pos:0, char:'l'}};
+				node.send = function (msg) {
+					equal(msg.op, 'cIns');
+				};
+				node.generate(msgOp);
+				equal(node.data, 'labc');
+			});
+			
+			test("JupiterNode - Receive Operation (no conflict)", function() {
+				expect(1);
+				var data = 'abc';
+				var node = new JupiterNode(0, data);
+				
+				var msgOp = {num:0, op: 'cIns', param: {pos:0, char:'i'}};
+				node.receive(msgOp);
+				equal(node.data, 'iabc');
+			});
+			
+			test("JupiterNode - Receive Operation (with conflicts)", function() {
+				expect(2);
+				var data = 'abc';
+				var node = new JupiterNode(0, data);
+				var msgOp = {op: 'cIns', param: {pos:0, char:'l'}};
+				node.send = function (msg) {};
+				node.generate(msgOp);
+				node.generate(msgOp); // data == 'llabc'
+				
+				msgOp = {num:0, op: 'cIns', param: {pos:0, char:'i'}};
+				node.receive(msgOp);
+				equal(node.data, 'lliabc');
+				
+				msgOp = {num:1, op: 'cDel', param: {pos:2}};
+				node.receive(msgOp);
+				equal(node.data, 'lliac');
+			});
+		</script>
+	</head>
+	<body>
+		<div id="qunit"></div>
+	</body>
+</html>
