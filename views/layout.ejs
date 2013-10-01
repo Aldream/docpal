@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+<style type="text/css">
+body {
+	padding-top: 60px;
+	padding-bottom: 40px;
+}
+</style>
+<link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/style.css" rel="stylesheet">
+<title>RiTHM - <%= title %></title>
+<script type="text/javascript">
+// ---- GLOBAL VAR
+var rest = "<%= rest %>";
+
+</script>
+<script src="http://code.jquery.com/jquery-1.7.1.js"></script>
+</head>
+
+<body>
+
+<header class="navbar navbar-fixed-top" role="banner">
+<div class="navbar-inner">
+<div class="container">
+
+  <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+    <span class="icon-bar"></span>
+    <span class="icon-bar"></span>
+    <span class="icon-bar"></span>
+  </a>
+  <a class="brand" href="#">Tableau de bord</a>
+  <div class="nav-collapse">
+    <ul class="nav">
+
+      <li><a href="index"><i class="icon-home icon-white"></i>&nbsp;Accueil</a></li>
+      <li><a href="alerts"><i class="icon-exclamation-sign icon-white"></i>&nbsp;Notifications</a></li>
+      <li><a href="rules"><i class="icon-ok-sign icon-white"></i>&nbsp;Règles</a></li>
+      <li><a href="actuators"><i class="icon-play icon-white"></i>&nbsp;Actionneurs</a></li>
+      <li><a href="help"><i class="icon-question-sign icon-white"></i>&nbsp;Aide</a></li>
+      <li><a href="logout">&nbsp;Se déconnecter</a></li>
+    </ul>
+  </div>
+</div>
+</div>
+</header>
+
+<div class="container">
+
+<%- body %>
+
+<footer>&copy; Hexanome H4311 - 2012</footer>
+
+<ul id="alerts_container"></ul>
+
+</div>
+
+<script src="bootstrap/js/bootstrap.js"></script>
+<!-- TODO Add JS scripts here -->
+<script src="script/lib/kinetic-v3.7.3.min.js"></script>
+<script src="script/lib/TimeAgo/jquery.dateFormat2.js"></script>
+<script src="script/lib/TimeAgo/jquery.timeago2.js"></script>
+<script src="script/common.js"></script>
+<script src="script/color.js"></script>
+<script src="script/objects.js"></script>
+<script src="script/views.js"></script>
+<script src="script/map.js"></script>
+<script src="script/alerts.js"></script>
+<script src="script/sensors.js"></script>
+<script src="script/actuators.js"></script>
+<script src="script/admin_devices.js"></script>
+
+<script type="application/x-javascript">
+		$(document).ready(function() {
+			displayAlerts('#alerts_container') ;
+
+		});
+</script>
+	
+</body>
+
+</html>
