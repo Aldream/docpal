@@ -1,6 +1,8 @@
 var modelsensors = require("./model/sensors");
 // Models:
-//var modelXXX = require("./model/xxx");
+var modelUser = require("./model/user.js");
+var modelOperation = require("./model/operation.js");
+var modelSnapshot = require("./model/snapshot.js");
 
 var logger = require("./logger");
 
