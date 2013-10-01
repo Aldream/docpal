@@ -8,9 +8,9 @@
 var logger = require("../logger");
 
 var UserSchema = new Schema({
-	_id			: Schema.Types.ObjectId,
-	name  		: {type : String, default : 'Stranger', trim : true},
-	password  	: type : String, default : '', trim : false}
+	_id			: Schema.Types.ObjectId,								// Primary Key
+	name  		: {type : String, default : 'Stranger', trim : true},	// Pseudo
+	password  	: type : String, default : '', trim : false}			// Password
 })
 
 mongoose.model('User', UserSchema)
