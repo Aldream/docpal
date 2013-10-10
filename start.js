@@ -36,6 +36,7 @@ rest.configure(function() {
 
 // Service:
 serviceHandler = {};
+serviceHandler["/doc"] = services.last_snapshot;
 //serviceHandler["/xxx"] = services.xxx;
 
 for (var url in serviceHandler) {
@@ -74,6 +75,7 @@ viewHandler = {};
 viewHandler["/(index)?"] = views.index;
 viewHandler["/login"] = views.login;
 viewHandler["/help"] = views.help;
+viewHandler["/doc"] = views.doc;
 //viewHandler["/xxx"] = views.xxx;
 
 // Need to be put before * otherwise the star rule catches all the
