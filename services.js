@@ -1,10 +1,10 @@
-var modelsensors = require("./model/sensors");
-// Models:
-var modelUser = require("./model/user.js");
-var modelOperation = require("./model/operation.js");
-var modelSnapshot = require("./model/snapshot.js");
-
+var mongoose = require('mongoose');
 var logger = require("./logger");
+
+var modelOperation = require("./model/operation")(mongoose).model;
+//var modelUser = require("./model/user")(mongoose).model;
+var modelSnapshot = require("./model/snapshot")(mongoose).model;
+
 
 function error(code, resp) {
 	var result = {};

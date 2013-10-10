@@ -75,7 +75,7 @@ viewHandler = {};
 viewHandler["/(index)?"] = views.index;
 viewHandler["/login"] = views.login;
 viewHandler["/help"] = views.help;
-viewHandler["/doc"] = views.doc;
+//viewHandler["/doc"] = views.doc;
 //viewHandler["/xxx"] = views.xxx;
 
 // Need to be put before * otherwise the star rule catches all the
@@ -96,6 +96,5 @@ for (var url in viewHandler) {
 logger.warn("HTML Server routes activated.");
 html.listen(8080);
 
-inference.runInference();
 logger.warn("HTML Server is listening.");
 
