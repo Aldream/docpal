@@ -5,8 +5,19 @@
 		<title>docpal - Unit Tests</title>
 		<link rel="stylesheet" href="qunit-1.12.0.css">
 		<script src="qunit-1.12.0.js"></script>
-		<script src="../lib/jupiterOp.js"></script>
+	</head>
+	<body>
+		<div id="qunit"></div>
+		<section id="jupiterDoc" style="display:none;"></section>
+		
+		<script src="../public/jquery/jquery-1.10.2.min.js"></script>
+		<!--<script src="../public/script/lib/socket.io-client.js"></script>-->
+		<script src="../public/script/lib/jquery-input/jquery.input.js"></script>
+		<script src="../public/script/lib/diff_match_patch_20121119/diff_match_patch.js"></script>
 		<script src="../lib/jupiterNode.class.js"></script>
+		<script src="../lib/jupiterOp.js"></script>
+		<script src="../public/script/jupiterClient.js"></script>
+
 		<script>
 			test("JupiterOp - Handling operations parameters (secureGetParam)", function() {
 				expect(3);
@@ -150,9 +161,29 @@
 				node.receive(msgOp);
 				equal(node.data, 'lliac');
 			});
+			
+			test("JupiterClient - Generation of local operation", function() {
+				expect(3);
+				
+				// Test insertion:
+				var data = 'abcdef';
+				$docTextarea.val(data);
+				$docTextarea.trigger('input');
+				equal(jupiterClient.data, data);
+				
+				// Test deletion:
+				data = 'ade';
+				$docTextarea.val(data);
+				$docTextarea.trigger('input');
+				equal(jupiterClient.data, data);
+				
+				
+				// Test no change:
+				data = 'ade';
+				$docTextarea.val(data);
+				$docTextarea.trigger('input');
+				equal(jupiterClient.data, data);
+			});
 		</script>
-	</head>
-	<body>
-		<div id="qunit"></div>
 	</body>
 </html>
