@@ -98,3 +98,22 @@ html.listen(8080);
 
 logger.warn("HTML Server is listening.");
 
+
+var io = require('socket.io').listen(html);
+var jupiterServerNode = new require('./lib/jupiterNode.class').JupiterNode(0, '');
+
+io.sockets.on('connection', function (socket) {
+	log.info('Client ' + socket.id + ' - Connection.');
+	socket.emit('data', { data: jupiterServerNode.data });
+
+	socket.on('op', function (msg) { // When receiving an operation from a client
+		log.info('Client ' + socket.id + ' - Operation Msg: ' + msg);
+		msg = jupiterServerNode.Receive(msg); // Applying it locally
+		socket.broadcast.emit('op', msg); // Sending to all the other clients
+	});
+
+	socket.on('disconnect', function() {
+		log.info('Client ' + socket.id + ' - Disconnection.');
+	});
+});
+
