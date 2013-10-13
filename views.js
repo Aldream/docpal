@@ -12,13 +12,8 @@ rest += config.getProperty("rest.url");
  */
 function viewIndex(req, res) {
 	logger.debug("Viewing index.");
-	var req = {};
-	
-    // Get rooms details
-    modelrooms.getRooms(req, function(result) {
-        var rooms=result.hits;
-        res.render('index', {title: "Accueil", rest: rest, rooms: rooms});
-	});
+
+	res.render('index', {title: "Accueil", rest: rest});
 }
 
 
