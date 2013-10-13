@@ -36,6 +36,7 @@ rest.configure(function() {
 
 // Service:
 serviceHandler = {};
+serviceHandler["/doc"] = services.last_snapshot;
 //serviceHandler["/xxx"] = services.xxx;
 
 for (var url in serviceHandler) {
@@ -74,6 +75,7 @@ viewHandler = {};
 viewHandler["/(index)?"] = views.index;
 viewHandler["/login"] = views.login;
 viewHandler["/help"] = views.help;
+//viewHandler["/doc"] = views.doc;
 //viewHandler["/xxx"] = views.xxx;
 
 // Need to be put before * otherwise the star rule catches all the
@@ -94,6 +96,24 @@ for (var url in viewHandler) {
 logger.warn("HTML Server routes activated.");
 html.listen(8080);
 
-inference.runInference();
 logger.warn("HTML Server is listening.");
+
+
+var io = require('socket.io').listen(html);
+var jupiterServerNode = new require('./lib/jupiterNode.class').JupiterNode(0, '');
+
+io.sockets.on('connection', function (socket) {
+	log.info('Client ' + socket.id + ' - Connection.');
+	socket.emit('data', { data: jupiterServerNode.data });
+
+	socket.on('op', function (msg) { // When receiving an operation from a client
+		log.info('Client ' + socket.id + ' - Operation Msg: ' + msg);
+		msg = jupiterServerNode.Receive(msg); // Applying it locally
+		socket.broadcast.emit('op', msg); // Sending to all the other clients
+	});
+
+	socket.on('disconnect', function() {
+		log.info('Client ' + socket.id + ' - Disconnection.');
+	});
+});
 

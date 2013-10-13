@@ -1,7 +1,7 @@
 var config = require("./config");
 
 // Models:
-var modelxxx = require("./model/xxx");
+//var modelxxx = require("./model/xxx");
 var logger = require("./logger");
 
 var rest = config.getProperty("security.ssl") ? "https://" : "http://";
