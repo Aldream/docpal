@@ -1,9 +1,9 @@
-var users = require('./model/users');
+//var users = require('./model/user');
 
 var badPwdError = "La combinaison login / password que vous avez entrée"+
 " est incorrecte";
 
-var credentials = users.getCredentials();
+var credentials = /*users.getCredentials()*/ [];
 var handler;
 
 var authObject = {
@@ -19,7 +19,7 @@ var authObject = {
 	checkAuth: function checkAuth(url) {
 		// The mecanism obviously must not work if the user is on the
 		// login page.
-		if (url == '/login') {
+		/*if (url == '/login') {
 			return handler[url];
 		} else {
 			return function (req, res) {
@@ -30,7 +30,8 @@ var authObject = {
 					handler[url](req, res);
 				}		
 			}
-		}
+		}*/
+		return function (req, res) { handler[url](req, res); };
 	},
 	
 	/*

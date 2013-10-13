@@ -1,7 +1,7 @@
 var config = require("./config");
 
 // Models:
-var modelxxx = require("./model/xxx");
+//var modelxxx = require("./model/xxx");
 var logger = require("./logger");
 
 var rest = config.getProperty("security.ssl") ? "https://" : "http://";
@@ -12,13 +12,8 @@ rest += config.getProperty("rest.url");
  */
 function viewIndex(req, res) {
 	logger.debug("Viewing index.");
-	var req = {};
-	
-    // Get rooms details
-    modelrooms.getRooms(req, function(result) {
-        var rooms=result.hits;
-        res.render('index', {title: "Accueil", rest: rest, rooms: rooms});
-	});
+
+	res.render('index', {title: "Accueil", rest: rest});
 }
 
 
