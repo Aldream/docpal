@@ -1,25 +1,34 @@
 
-JupiterNode.prototype.send = function(msg) { console.log(msg); };
+var socket = io.connect();
+JupiterNode.prototype.send = function(msg) {
+	socket.emit('op', msg);
+	console.log('<WebSocket> Local Operation sent: { type: ' + msg.op +', param: '+ msg.param +' }');
+};
 
 var jupiterClient = new JupiterNode(/*TO DO: generate unique ID */ 0, '');
 var $docTextarea = $('<textarea id="doc" cols="120" rows="30"></textarea>');
 var diffMatchPatchFunc = new diff_match_patch();
 
-//jupiterClient.socket = io.connect();
-//
-//jupiterClient.socket.on('connect', function () {
-//
-//	jupiterClient.socket.on('data', function(data) { // When receiving a version of the shared doc:
-//		// TO DO: Check for uncommited modifications before.
-//		$docTextarea = jupiterClient.data = data;
-//		
-//		jupiterClient.socket.on('op', function(opMsg) { // When receiving an operation from the server:
-//			jupiterClient.receive(opMsg);
-//			$docTextarea = jupiterClient.data;
-//		});
+jupiterClient.socket = socket;
+
+jupiterClient.socket.on('connect', function () {
+	console.log('<WebSocket> Connected.');
+
+	jupiterClient.socket.on('data', function(data) { // When receiving a version of the shared doc:
+		// TO DO: Check for uncommited modifications before.
+		console.log('<WebSocket> Server\'s Data received.');
+		$docTextarea.val(jupiterClient.data = data.data);
+		
+		jupiterClient.socket.on('op', function(opMsg) { // When receiving an operation from the server:
+			console.log('<WebSocket> Distant Operation received: { type: ' + opMsg.op +', param: '+ opMsg.param +' }');
+			jupiterClient.receive(opMsg);
+			$docTextarea.val(jupiterClient.data);
+			console.log('<Update> Distant Operation #' + jupiterClient.otherMessages + ' applied: { type: ' + opMsg.op +', param: '+ opMsg.param +' }');
+		});
 		
 		// On local changes:
 		$docTextarea.input(function() {
+			console.log('<Input> Local Change Detected.');
 			var newData = $docTextarea.val();
 			
 			// Computing the differences (insertions / deletions) with the previous text:
@@ -51,12 +60,11 @@ var diffMatchPatchFunc = new diff_match_patch();
 		});
 		
 		// Client is connected to the server and ready - let's enable the edition:
-		$('#jupiterDoc').html('<label for="doc">Document</label>');
-		$('#jupiterDoc').append($docTextarea);
+		$('#jupiterDoc').html($docTextarea);
 		
-//		// TO DO: Tell the user (s)he can starts editing now.
-//		
-//	});
-//	
-//	
-//});
+		// TO DO: Tell the user (s)he can starts editing now.
+		
+	});
+	
+	
+});
