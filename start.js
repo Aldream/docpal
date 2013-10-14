@@ -1,5 +1,7 @@
 var express = require("express");
+var http = require('http');
 var fs = require("fs");
+var engine = require('ejs-locals');
 
 var config = require("./config");
 var services = require("./services");
@@ -58,7 +60,10 @@ if(sslActivated) {
 	html = express.createServer();
 }
 
+
 html.configure(function() {
+	// use ejs-locals for all ejs templates:
+	html.engine('ejs', engine);
 	html.use(express.bodyParser());
 	html.use(express.static(__dirname + '/public'));
 	html.set('views', __dirname + '/views');
@@ -94,26 +99,29 @@ for (var url in viewHandler) {
 }
 
 logger.warn("HTML Server routes activated.");
-html.listen(8080);
+var serverHtml = http.createServer(html);
+serverHtml.listen(8080);
 
 logger.warn("HTML Server is listening.");
 
 
-var io = require('socket.io').listen(html);
-var jupiterServerNode = new require('./lib/jupiterNode.class').JupiterNode(0, '');
-
+var io = require('socket.io').listen(serverHtml);
+var JupiterNode = require('./lib/module.jupiterNode.class').JupiterNode;
+var jupiterServerNode = new JupiterNode(0, '');
+logger.debug(jupiterServerNode);
+	
 io.sockets.on('connection', function (socket) {
-	log.info('Client ' + socket.id + ' - Connection.');
+	logger.info('<Websocket> Client ' + socket.id + ' - Connection.');
 	socket.emit('data', { data: jupiterServerNode.data });
 
 	socket.on('op', function (msg) { // When receiving an operation from a client
-		log.info('Client ' + socket.id + ' - Operation Msg: ' + msg);
-		msg = jupiterServerNode.Receive(msg); // Applying it locally
+		logger.info('<Websocket> Client ' + socket.id + ' - Operation Msg: { type: ' + msg.op + ', param: ' + msg.param + ' }');
+		msg = jupiterServerNode.receive(msg); // Applying it locally
 		socket.broadcast.emit('op', msg); // Sending to all the other clients
 	});
 
 	socket.on('disconnect', function() {
-		log.info('Client ' + socket.id + ' - Disconnection.');
+		logger.info('<Websocket> Client ' + socket.id + ' - Disconnection.');
 	});
 });
 
