@@ -86,6 +86,48 @@ a{
 	color: #222;
 	text-decoration: underline;
 }
+.note {
+	cursor: move;
+	width: 275px;
+	height: 275px;
+	background-color: #fefef5;
+	position: absolute;
+	border: 1px #eee solid;
+	border-radius: 5px 5px 0 5px;
+	-webkit-box-shadow: 0 0 1px rgba(0,0,0,0.7);
+	-moz-box-shadow: 0 0 1px rgba(0,0,0,0.7);
+	box-shadow: 0 0 1px rgba(0,0,0,0.7);
+}
+.note::after {
+	content: "";
+	position: absolute;
+	bottom: 10px;
+	left: 3%;
+	width: 95%;
+	height: 10%;
+	float: right;
+	z-index: -1;
+	-webkit-box-shadow: 0 10px 10px rgba(0,0,0,0.7);
+	-moz-box-shadow: 0 10px 10px rgba(0,0,0,0.7);
+	box-shadow: 0 10px 10px rgba(0,0,0,0.7);
+	-webkit-transform: rotate(2deg);
+	-moz-transform: rotate(2deg);
+	-ms-transform: rotate(2deg);
+	-o-transform: rotate(2deg);
+	transform: rotate(2deg);
+}
+
+.note textarea {
+	margin-top: 10px;
+	width: 250px;
+	height: 240px;
+	background-color: #fffffa;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px #777 dashed;
+	padding: 5px;
+}
 
 
 

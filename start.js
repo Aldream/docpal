@@ -107,7 +107,7 @@ logger.warn("HTML Server is listening.");
 
 var io = require('socket.io').listen(serverHtml);
 var JupiterNode = require('./lib/module.jupiterNode.class').JupiterNode;
-var jupiterServerNode = new JupiterNode(0, '');
+var jupiterServerNode = new JupiterNode(0, {});
 logger.debug(jupiterServerNode);
 	
 io.sockets.on('connection', function (socket) {
