@@ -1,102 +1,12 @@
-<script type="application/x-javascript">
-		
-		$(document).ready(function() {
-			//$('header nav ul').css("width", window.innerWidth-400+"px");
-			$('#buildingContainer').css("left", (window.innerWidth*0.16)+"px");
-			var canvas = document.getElementById('scale');
-			canvas.width = 50;
-			canvas.height = 200;
-			BuildingGenerator.setStage('buildingContainer',  $('.span10').width(), window.innerHeight-330);
+<% layout('layout') -%>
 
- 			Initialize();
-			
-			$('.span2 .nav a').click(function() {
-				$('.span2 .nav li').removeClass('active');
-				BuildingGenerator.wantedMeasure = $(this).attr('value');
-				BuildingGenerator.roomLayer.draw();
-				drawGradient(document.getElementById('scale'), BuildingGenerator.minArrays[$(this).attr('value')], BuildingGenerator.maxArrays[$(this).attr('value')], BuildingGenerator.colorArrays[$(this).attr('value')], 8, BuildingGenerator.unitArrays[$(this).attr('value')], 'Température');
-				$(this).parent().addClass('active');
-			});
-
-		});
-</script>
-<ul class="breadcrumb">
-	<li class="active">
-		<a href="index">Home</a>
-	</li>
-</ul>
-
-<div class="page-header">
-	<div class="row">
-		<div class="span1">
-			<img src="images/logo.png" alt="RiTHM" />
-		</div>
-		<div class="span11">
-			<h1>Tableau de bord RiTHM</h1>
-			<p>A partir de cette page, vous pouvez visualiser l'ensemble de l'hopital.</p>
-		</div>
-	</div>
-</div>
-
-<div class="row">
-
-<nav class="span2">
-	<ul class="nav nav-list">
-		<li class="nav-header">
-			Mesures
-		</li>
-		<li class="active">
-			<a href="#" id = "menu_3" value = "3">Temperature</a>
-		</li>
-		<li>
-			<a href="#" id = "menu_4" value = "4">Humidity</a>
-		</li>
-		<li>
-			<a href="#" id = "menu_5" value = "5">Luminosity</a>
-		</li>
-		<li>
-			<a href="#" id = "menu_6" value = "8">CO2 Level</a>
-		</li>
-	</ul> 
-	<div>
-		<canvas id="scale"></canvas>
-	</div>
-</nav>
+<script src="script/lib/jquery-input/jquery.input.js"></script>
+<script src="script/lib/diff_match_patch_20121119/diff_match_patch.js"></script>
+<script src="script/jupiterNode.class.js"></script>
+<script src="script/jupiterOp.js"></script>
+<script src="script/jupiterClient.js"></script>
 
 
-<section class="span10">
-
-	<div class="row">
-	
-		<div class="btn-group pull-right">
-			<a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-			Sélectionner une chambre
-			<span class="caret"></span>
-			</a>
-			<ul class="dropdown-menu">
-				<% rooms.forEach(function(room){ %>
-				<li><a href="room?id=<%= room.id %>"><%= room.nom %></a></li>
-				<% }) %>
-			</ul>
-		</div>
-		
-	</div><div class="row">
-
-		<div id="buildingContainer" ></div>
-		<div id="roomDesc">
-			<p>0</p>
-			<table>
-				<tr><td><img src="images/patient.png" alt="Patients" Title="Patients"/></td> <td>0</td></tr>
-				<tr><td><img src="images/warning2.png" alt="Alertes" Title="Alertes"/></td> <td>0</td></tr>
-				<tr><td colspan=2>0</td></tr>
-			    
-			</table>
-			
-		</div>
-		<p id="warningDesc" class="alert">
-		</p>
-	</div>
+<section id="jupiterDoc">
+	<p id="waitMsg">Please wait, fetching the awesomeness</p>
 </section>
-
-
-</div>
