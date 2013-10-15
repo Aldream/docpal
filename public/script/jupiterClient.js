@@ -26,13 +26,19 @@ jupiterClient.socket.on('connect', function () {
 				addNote(opMsg.param.id, opMsg.param);
 			}
 			else if (opMsg.op == 'cIns' || opMsg.op == 'cDel') {
-				$('#'+ opMsg.param.id +' > textarea').val(jupiterClient.data[opMsg.param.id].text);
+				var $textarea = $('#'+ opMsg.param.id +' > textarea');
+				var currentCaretPos = doGetCaretPosition($textarea[0]);
+				$textarea.val(jupiterClient.data[opMsg.param.id].text);
+				setCaretPosition($textarea[0], currentCaretPos);
 			}
 			else if (opMsg.op == 'nDrag') {
 				$('#'+ opMsg.param.id).css({
 					'top': opMsg.param.y,
 					'left': opMsg.param.x
 				});
+			}
+			else if (opMsg.op == 'nDel') {
+				$('#'+ opMsg.param.id).remove();
 			}
 			console.log('<Update> Distant Operation #' + jupiterClient.otherMessages + ' applied: { type: ' + opMsg.op +', param: '+ opMsg.param +' }');
 		});
@@ -72,7 +78,11 @@ function addNote(id, noteData) {
 	var $notetext = $('<textarea>'+noteData.text+'</textarea>');
 	$notetext.val(noteData.text);
 
+	var $noteDelBtn = $('<a class="deleteNote">&times;</a>');
+
+
 	var $newnote = $('<div class="note" id="'+ id +'"></div>');
+	$noteDelBtn.appendTo($newnote);
 	$notetext.appendTo($newnote);
 	$newnote.css({
 		'position': 'absolute',
@@ -81,6 +91,13 @@ function addNote(id, noteData) {
 	});
 
 	// Handling the events:
+	$noteDelBtn.click(function() {
+		var cId = $(this).parent().attr('id');
+		console.log('<Input> Local Operation Detected: Deletion of Note #'+ cId +'.');
+		jupiterClient.generate( {op: 'nDel', param: {id: cId}} ); // Generating the corresponding nDel operation.
+		$(this).parent().remove();
+	});
+
 	$newnote.bind('drag', function (ev, dd) {
 		console.log('<Input> Local Operation Detected: Drag of Note #'+ $(this).attr('id') +'.');
 		jupiterClient.generate( {op: 'nDrag', param: {id: $(this).attr('id'), x: dd.offsetX, y: dd.offsetY}} ); // Generating the corresponding nDrag operation.
@@ -142,4 +159,32 @@ function padStr2(i) {
 }
 function padStr3(i) {
     return (i < 10) ? "00" + i : (i < 100) ? "0" + i : i;
+}
+
+function doGetCaretPosition (ctrl) {
+	var CaretPos = 0;	// IE Support
+	if (document.selection && navigator.appVersion.indexOf("MSIE 10") == -1) {
+	ctrl.focus ();
+		var Sel = document.selection.createRange ();
+		Sel.moveStart ('character', -ctrl.value.length);
+		CaretPos = Sel.text.length;
+	}
+	// Firefox support
+	else if (ctrl.selectionStart || ctrl.selectionStart == '0')
+		CaretPos = ctrl.selectionStart;
+	return (CaretPos);
+}
+function setCaretPosition(ctrl, pos){
+	if(ctrl.setSelectionRange)
+	{
+		ctrl.focus();
+		ctrl.setSelectionRange(pos,pos);
+	}
+	else if (ctrl.createTextRange) {
+		var range = ctrl.createTextRange();
+		range.collapse(true);
+		range.moveEnd('character', pos);
+		range.moveStart('character', pos);
+		range.select();
+	}
 }

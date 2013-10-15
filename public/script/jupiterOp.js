@@ -126,6 +126,20 @@ var JupiterOp = {
 					data[id].y = y;
 				}
 				return data;
+			},
+			/**
+			 * nFetch
+			 * ====
+			 * Retrieve a note from the server/DB
+			 * Parameters in param:
+			 *	- id (String):	Unique ID
+			 * Output: /
+			 */
+			'nFetch': function fetchNote(data, param) {
+				var	id = JupiterOp.secureGetParam(param, 'id');
+				// Ajax Request to the REST API:
+
+					// Callback: Apply nAdd with the returned data
 			}
 	},
 
@@ -204,16 +218,111 @@ var JupiterOp = {
 
 		// nDel VS (cDel | cIns)
 		else if (localMsg.op == 'nDel' && (incoMsg.op == 'cDel' || incoMsg.op == 'cIns')) {
-			// We cancel the deletion of the note:
+			// We cancel the deletion of the note by fetching it:
 			localMsg.op = 'noOp';
 			localMsg.param = null;
+			incoMsg.op = 'nFetch';
+			incoMsg.param = localMsg.param.id;
 		}
 
 		// (cDel | cIns) VS nDel
 		else if (incoMsg.op == 'nDel' && (localMsg.op == 'cDel' || localMsg.op == 'cIns')) {
+			// We don't apply the deletion of the note:
+			incoMsg.op = 'noOp';
+			incoMsg.param = null;
+		}
+
+		// nDel VS nDel
+		else if (localMsg.op == 'nDel' && incoMsg.op == 'nDel') {
+			// Nothing else to do...
+			localMsg.op = incoMsg.op = 'noOp';
+			localMsg.param = incoMsg.param = null;
+		}
+
+		// nDel VS nAdd
+		else if (localMsg.op == 'nDel' && incoMsg.op == 'nAdd') {
+			// Since the note must have been added to be deleted, we keep it deleted:
+			incoMsg.op = 'noOp';
+			incoMsg.param = null;
+		}
+
+		// nDel VS nDrag
+		else if (localMsg.op == 'nDel' && incoMsg.op == 'nDrag') {
+			// We cancel the deletion of the note:
+			localMsg.op = 'noOp';
+			localMsg.param = null;
+
+			// TO DO
+		}
+
+		// nAdd VS (cDel | cIns)
+		else if (localMsg.op == 'nAdd' && (incoMsg.op == 'cDel' || incoMsg.op == 'cIns')) {
+			// The note must be already created to edit its content...
+			localMsg.op = 'noOp';
+			localMsg.param = null;
+		}
+
+
+		// (cDel | cIns) VS nAdd
+		else if (incoMsg.op == 'nAdd' && (localMsg.op == 'cDel' || localMsg.op == 'cIns')) {
+			// The note must be already created to edit its content...
+			incoMsg.op = 'noOp';
+			incoMsg.param = null;
+
+			// TO DO
+		}
+
+		// nAdd VS nAdd
+		else if (localMsg.op == 'nAdd' && incoMsg.op == 'nAdd') {
+			// Nothing else to do...
+			localMsg.op = incoMsg.op = 'noOp';
+			localMsg.param = incoMsg.param = null;
+		}
+
+		// nAdd VS nDel
+		else if (localMsg.op == 'nAdd' && incoMsg.op == 'nDel') {
+			// Since the note must have been added to be deleted, we keep it deleted:
+			localMsg.op = 'noOp';
+			localMsg.param = null;
+		}
+
+		// nAdd VS nDrag
+		else if (localMsg.op == 'nAdd' && incoMsg.op == 'nDrag') {
+			// The note must be already created to edit its position...
+			localMsg.op = 'noOp';
+			localMsg.param = null;
+		}
+
+		// nDrag VS (cDel | cIns)
+		else if (localMsg.op == 'nDrag' && (incoMsg.op == 'cDel' || incoMsg.op == 'cIns')) {
+			// No collision
+		}
+
+
+		// (cDel | cIns) VS nDrag
+		else if (incoMsg.op == 'nDrag' && (localMsg.op == 'cDel' || localMsg.op == 'cIns')) {
+			// No collision
+		}
+
+		// nDrag VS nAdd
+		else if (localMsg.op == 'nDrag' && incoMsg.op == 'nAdd') {
+			// The note must be already created to edit its position...
+			incoMsg.op = 'noOp';
+			incoMsg.param = null;
+		}
+
+		// nDrag VS nDel
+		else if (localMsg.op == 'nDrag' && incoMsg.op == 'nDel') {
 			// We cancel the deletion of the note:
 			incoMsg.op = 'noOp';
 			incoMsg.param = null;
+
+			// TO DO
+		}
+
+		// nDrag VS nDrag
+		else if (localMsg.op == 'nDrag' && incoMsg.op == 'nDrag') {
+			// TO DO
 		}
 		
 	},
@@ -229,7 +338,7 @@ var JupiterOp = {
 	 * Output: Value of the parameter if found
 	 */	
 	secureGetParam: function(params, name) {
-		if (typeof params !== 'object' || params[name] === undefined) {
+		if (params == null || typeof params !== 'object' || params[name] === undefined) {
 			// TODO: Handle the error / Report it
 			//alert('Uncorrect Operation!');
 			console.log('Uncorrect Operation!');
