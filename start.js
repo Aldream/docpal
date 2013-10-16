@@ -38,7 +38,7 @@ rest.configure(function() {
 
 // Service:
 serviceHandler = {};
-serviceHandler["/doc"] = services.last_snapshot;
+serviceHandler["/doc"] = services.rest.getLastSnapshot;
 //serviceHandler["/xxx"] = services.xxx;
 
 for (var url in serviceHandler) {
@@ -105,23 +105,67 @@ serverHtml.listen(8080);
 logger.warn("HTML Server is listening.");
 
 
-var io = require('socket.io').listen(serverHtml);
+/* ---------------------
+ * JUPITER SERVER, using Socket.io:
+ * ---------------------
+ */
+
+
+
 var JupiterNode = require('./lib/module.jupiterNode.class').JupiterNode;
 var jupiterServerNode = new JupiterNode(0, {});
 logger.debug(jupiterServerNode);
+services.local.readAllActiveNotes(function(err, notes) { // First we retrieve potential data from the DB
+	if (err) { logger.error('<MongoDB> No data retrieve from previous instances: '+ err); }
+	if (notes) {
+		notes.forEach(function(note) {
+              		jupiterServerNode.data[note.id] = {
+				x: note.x,
+				y: note.y,
+				text: note.text,
+				type: note.type,
+				state: note.state
+			};
+		});
+         }
 	
-io.sockets.on('connection', function (socket) {
-	logger.info('<Websocket> Client ' + socket.id + ' - Connection.');
-	socket.emit('data', { data: jupiterServerNode.data });
+	var io = require('socket.io').listen(serverHtml);
+	io.sockets.on('connection', function (socket) { // On connection of a client:
 
-	socket.on('op', function (msg) { // When receiving an operation from a client
-		logger.info('<Websocket> Client ' + socket.id + ' - Operation Msg: { type: ' + msg.op + ', param: ' + msg.param + ' }');
-		msg = jupiterServerNode.receive(msg); // Applying it locally
-		socket.broadcast.emit('op', msg); // Sending to all the other clients
+		logger.info('<Websocket> Client ' + socket.id + ' - Connection.');
+		socket.emit('data', { data: jupiterServerNode.data }); // Sending her/him the current data
+
+		socket.on('op', function (msg) { // When receiving an operation from a client
+			logger.info('<Websocket> Client ' + socket.id + ' - Operation Msg: { type: ' + msg.op + ', param: ' + msg.param + ' }');
+			msg = jupiterServerNode.receive(msg); // Applying it locally
+			services.local.saveOperation({idUser : 'TO DO', type: msg.op, param: msg.param /*, timestamp: TO DO*/}, function(op, suc) {	
+				if (suc) { // If the operation was safely saved:
+					socket.broadcast.emit('op', msg); // Sending to all the other clients
+				
+					// Saving the effects of the operation in the DB:
+					if (msg.op == 'cIns' || msg.op == 'cDel') { // Edition of the text of a note
+						services.local.updateNoteText(msg.param.id, jupiterServerNode.data[msg.param.id].text);
+					}
+					else if (msg.op == 'nAdd') { // Creation of a note
+						services.local.saveNote(msg.param, function(){});
+					}
+					else if (msg.op == 'nDel') { // Deletion of a note
+						services.local.updateNoteState(msg.param.id, 0);
+					}
+					else if (msg.op == 'nDrag') { // Moving a note
+						services.local.updateNoteDrag(msg.param.id, jupiterServerNode.data[msg.param.id].x, jupiterServerNode.data[msg.param.id].y);
+					}
+				}
+			});
+		});
+
+		socket.on('disconnect', function() {// On disconnection of a client:
+			logger.info('<Websocket> Client ' + socket.id + ' - Disconnection.');
+		});
 	});
 
-	socket.on('disconnect', function() {
-		logger.info('<Websocket> Client ' + socket.id + ' - Disconnection.');
-	});
 });
+
+
+
 

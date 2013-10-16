@@ -86,7 +86,8 @@ var JupiterOp = {
 						x: x,
 						y: y,
 						text: text,
-						type: type
+						type: type,
+						state: 1
 					};
 ;
 				}
@@ -124,6 +125,7 @@ var JupiterOp = {
 				if (x !== null && y !== null && id !== null) {
 					data[id].x = x;
 					data[id].y = y;
+					data[id].state = 2;
 				}
 				return data;
 			},
