@@ -62,11 +62,12 @@ function parseRequest(req, names) {
  * ====
  * Save an note in the DB.
  * Parameters:
+ *	- id (String): 			ID of the note
  *	- noteData (Object): 		Data of the note
  *	- cb (Function(Note, bool)):	Callback
  * Output: true if success, or false
  */
-function saveNote(noteData, cb) {
+function saveNote(id, noteData, cb) {
 	var note = new modelNote(noteData);
 	modelNote.update({ id: noteData.id }, noteData, { upsert: true }, function (err, numberAffected, raw) {
 		if (err) { logger.error(err); return cb(note, false); }
@@ -76,7 +77,7 @@ function saveNote(noteData, cb) {
 function serviceSaveNote(req, resp) {
 	logger.info("<Service> SaveNote.");
 	
-	var noteData = parseRequest(req, ['id', 'type', 'text', 'x', 'y', 'timestampLastOp']);
+	var noteData = parseRequest(req, ['id', 'type', 'text', 'x', 'y', 'timestampLastOp', 'state']);
 	writeHeaders(resp);
 	saveNote(note, function(noteData, success) { resp.end(JSON.stringify({ success: success })); });
 }

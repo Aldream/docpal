@@ -109,15 +109,18 @@ logger.warn("HTML Server is listening.");
  * JUPITER SERVER, using Socket.io:
  * ---------------------
  */
+var JupiterNode = require('./lib/module.jupiterNode.class').JupiterNode;
+var jupiterServerNode = new JupiterNode(0, {});
+jupiterServerNode.start(serverHtml);
 
-
-
+/*
 var JupiterNode = require('./lib/module.jupiterNode.class').JupiterNode;
 var jupiterServerNode = new JupiterNode(0, {});
 logger.debug(jupiterServerNode);
 services.local.readAllActiveNotes(function(err, notes) { // First we retrieve potential data from the DB
 	if (err) { logger.error('<MongoDB> No data retrieve from previous instances: '+ err); }
 	if (notes) {
+		logger.error('<MongoDB> Notes retrieved. Number = '+notes.length);
 		notes.forEach(function(note) {
               		jupiterServerNode.data[note.id] = {
 				x: note.x,
@@ -138,7 +141,7 @@ services.local.readAllActiveNotes(function(err, notes) { // First we retrieve po
 		socket.on('op', function (msg) { // When receiving an operation from a client
 			logger.info('<Websocket> Client ' + socket.id + ' - Operation Msg: { type: ' + msg.op + ', param: ' + msg.param + ' }');
 			msg = jupiterServerNode.receive(msg); // Applying it locally
-			services.local.saveOperation({idUser : 'TO DO', type: msg.op, param: msg.param /*, timestamp: TO DO*/}, function(op, suc) {	
+			services.local.saveOperation({idUser : 'TO DO', type: msg.op, param: msg.param /*, timestamp: TO DO*//*}, function(op, suc) {	
 				if (suc) { // If the operation was safely saved:
 					socket.broadcast.emit('op', msg); // Sending to all the other clients
 				
@@ -147,7 +150,7 @@ services.local.readAllActiveNotes(function(err, notes) { // First we retrieve po
 						services.local.updateNoteText(msg.param.id, jupiterServerNode.data[msg.param.id].text);
 					}
 					else if (msg.op == 'nAdd') { // Creation of a note
-						services.local.saveNote(msg.param, function(){});
+						services.local.saveNote(msg.param.id, jupiterServerNode.data[msg.param.id], function(){});
 					}
 					else if (msg.op == 'nDel') { // Deletion of a note
 						services.local.updateNoteState(msg.param.id, 0);
@@ -165,7 +168,7 @@ services.local.readAllActiveNotes(function(err, notes) { // First we retrieve po
 	});
 
 });
-
+*/
 
 
 

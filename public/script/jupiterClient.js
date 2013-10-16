@@ -26,12 +26,20 @@ jupiterClient.socket.on('connect', function () {
 				addNote(opMsg.param.id, opMsg.param);
 			}
 			else if (opMsg.op == 'cIns' || opMsg.op == 'cDel') {
+				if (jupiterClient.data[opMsg.param.id].state == 10) { // Must first restore the note
+					addNote(opMsg.param.id, jupiterClient.data[opMsg.param.id]);
+					jupiterClient.data[opMsg.param.id].state = 1;
+				}
 				var $textarea = $('#'+ opMsg.param.id +' > textarea');
 				var currentCaretPos = doGetCaretPosition($textarea[0]);
 				$textarea.val(jupiterClient.data[opMsg.param.id].text);
 				setCaretPosition($textarea[0], currentCaretPos);
 			}
 			else if (opMsg.op == 'nDrag') {
+				if (jupiterClient.data[opMsg.param.id].state == 20) { // Must first restore the note
+					addNote(opMsg.param.id, jupiterClient.data[opMsg.param.id]);
+					jupiterClient.data[opMsg.param.id].state = 2;
+				}
 				$('#'+ opMsg.param.id).css({
 					'top': opMsg.param.y,
 					'left': opMsg.param.x

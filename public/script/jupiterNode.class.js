@@ -36,12 +36,14 @@ JupiterNode.prototype.generate = function(msg)
 {
 	// Applying the operation locally:
 	this.data = JupiterOp.apply(this.data, msg);
-	
+	msg.nMes = this.nodeMessages;
+	msg.oMes = this.otherMessages;
+
 	// Sending the operation to inform the rest of the system:
 	this.send(msg);
 	
 	// Adding it to the list of unacknowledged operations:
-	this.outgoing.push({num: this.nodeMessages, msg: msg});
+	this.outgoing.push(msg);
 	this.nodeMessages++;
 };
 
@@ -59,13 +61,14 @@ JupiterNode.prototype.receive = function(msg)
 	// TODO: if (this.otherMessages != msg.num) throw ERROR
 	
 	// Discarding acknowledged messages:
-	while (this.outgoing.length > 0 && this.outgoing[0] < msg.num) {
+	while (this.outgoing.length > 0 && this.outgoing[0].nMes < msg.oMes) {
+		this.data = JupiterOp.finalize(this.data, this.outgoing[0]);
 		this.outgoing.shift();
 	}
 	
 	// Transforming the incoming operations and the one in the queue:
 	for (var i=0; i < this.outgoing.length; i++) {
-		JupiterOp.xform(msg, this.outgoing[i].msg);
+		JupiterOp.xform(msg, this.outgoing[i]);
 	}
 	
 	// Applying the operation locally:

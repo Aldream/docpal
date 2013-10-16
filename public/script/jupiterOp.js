@@ -41,6 +41,9 @@ var JupiterOp = {
 					id = JupiterOp.secureGetParam(param, 'id');
 				if (pos !== null && c !== null) {
 					data[id].text = data[id].text.slice(0,pos) + c + data[id].text.slice(pos);
+					if (data[id].state == 0) { // If the note was considered deleted, we "restore" it:
+						data[id].state = 10; // 10 = "to be restored locally"
+					}
 				}
 				return data;
 			},
@@ -58,6 +61,9 @@ var JupiterOp = {
 					id = JupiterOp.secureGetParam(param, 'id');
 				if (pos !== null) {
 					data[id].text = data[id].text.slice(0,pos) + data[id].text.slice(pos+1);
+					if (data[id].state == 0) { // If the note was considered deleted, we "restore" it:
+						data[id].state = 10; // 10 = "to be restored locally"
+					}
 				}
 				return data;
 			},
@@ -104,7 +110,7 @@ var JupiterOp = {
 			'nDel': function delNote(data, param) {
 				var	id = JupiterOp.secureGetParam(param, 'id');
 				if (id !== null) {
-					delete data[id];
+					data[id].state = 0;
 				}
 				return data;
 			},
@@ -123,25 +129,14 @@ var JupiterOp = {
 					y = JupiterOp.secureGetParam(param, 'y'),
 					id = JupiterOp.secureGetParam(param, 'id');
 				if (x !== null && y !== null && id !== null) {
+					if (data[id].state == 0) { // If the note was considered deleted, we "restore" it:
+						data[id].state = 20; // 20 = "to be restored locally and being dragged"
+					}
+					else { data[id].state = 2; }
 					data[id].x = x;
 					data[id].y = y;
-					data[id].state = 2;
 				}
 				return data;
-			},
-			/**
-			 * nFetch
-			 * ====
-			 * Retrieve a note from the server/DB
-			 * Parameters in param:
-			 *	- id (String):	Unique ID
-			 * Output: /
-			 */
-			'nFetch': function fetchNote(data, param) {
-				var	id = JupiterOp.secureGetParam(param, 'id');
-				// Ajax Request to the REST API:
-
-					// Callback: Apply nAdd with the returned data
 			}
 	},
 
@@ -220,18 +215,15 @@ var JupiterOp = {
 
 		// nDel VS (cDel | cIns)
 		else if (localMsg.op == 'nDel' && (incoMsg.op == 'cDel' || incoMsg.op == 'cIns')) {
-			// We cancel the deletion of the note by fetching it:
+			// We don't apply the deletion of the note:
 			localMsg.op = 'noOp';
 			localMsg.param = null;
-			incoMsg.op = 'nFetch';
-			incoMsg.param = localMsg.param.id;
 		}
 
 		// (cDel | cIns) VS nDel
 		else if (incoMsg.op == 'nDel' && (localMsg.op == 'cDel' || localMsg.op == 'cIns')) {
-			// We don't apply the deletion of the note:
+			// We cancel the deletion of the note:
 			incoMsg.op = 'noOp';
-			incoMsg.param = null;
 		}
 
 		// nDel VS nDel
@@ -253,8 +245,6 @@ var JupiterOp = {
 			// We cancel the deletion of the note:
 			localMsg.op = 'noOp';
 			localMsg.param = null;
-
-			// TO DO
 		}
 
 		// nAdd VS (cDel | cIns)
@@ -270,8 +260,6 @@ var JupiterOp = {
 			// The note must be already created to edit its content...
 			incoMsg.op = 'noOp';
 			incoMsg.param = null;
-
-			// TO DO
 		}
 
 		// nAdd VS nAdd
@@ -318,8 +306,6 @@ var JupiterOp = {
 			// We cancel the deletion of the note:
 			incoMsg.op = 'noOp';
 			incoMsg.param = null;
-
-			// TO DO
 		}
 
 		// nDrag VS nDrag
@@ -330,13 +316,33 @@ var JupiterOp = {
 	},
 
 	/**
+	 * finalize
+	 * ====
+	 * Some effects from operations can stay pending until confirmation those operations have been acknowledged by everyone.
+	 * This method is called for acknowledged operations to finalize them.
+	 * Parameters:
+	 *	- data (JSON obj): 	Original data
+	 *	- msg (JSON obj): 	Message defining the operation
+	 * Output: Updated data
+	 */	
+	finalize: function(data, msg) {
+		if (msg.op == 'nDel') {
+			var	id = JupiterOp.secureGetParam(msg.param, 'id');
+			if (id !== null) {
+				delete data[id];
+			}
+		}
+		return data;
+	},
+
+	/**
 	 * secureGetParam
 	 * ====
 	 * Checks the parameters object to get the wanted value.
 	 * If this parameter isn't find, an error is thrown.
 	 * Parameters:
 	 *	- params (JSON obj): 	Parameters object
-	 *	- name (string):		Name of the wanted parameter
+	 *	- name (string):	Name of the wanted parameter
 	 * Output: Value of the parameter if found
 	 */	
 	secureGetParam: function(params, name) {
