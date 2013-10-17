@@ -66,16 +66,25 @@ JupiterNode.prototype.receive = function(msg)
 		this.outgoing.shift();
 	}
 	
-	// Transforming the incoming operations and the one in the queue:
-	for (var i=0; i < this.outgoing.length; i++) {
-		JupiterOp.xform(msg, this.outgoing[i]);
-	}
+	applyXformRecursive(0, msg, this.outgoing, this.data);
 	
-	// Applying the operation locally:
-	this.data = JupiterOp.apply(this.data, msg);
 	this.otherMessages++;
 
 	return msg;
+	
+	function applyXformRecursive(k, msg, outgoing, data) {
+		// Transforming the incoming operations and the one in the queue:
+		for (var i=k; i < outgoing.length; i++) {
+			JupiterOp.xform(msg, outgoing[i]);
+			if (msg.pseudoOp) {
+				data = applyXformRecursive(i+1, msg.pseudoOp, outgoing, data);
+				delete msg.pseudoOp;
+			}
+		}
+		
+		// Applying the operation locally:
+		return JupiterOp.apply(data, msg);
+	}
 };
 
 /**

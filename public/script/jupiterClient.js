@@ -1,7 +1,7 @@
 var socket = io.connect();
 JupiterNode.prototype.send = function(msg) {
 	socket.emit('op', msg);
-	console.log('<WebSocket> Local Operation sent: { type: ' + msg.op +', param: '+ msg.param +' }');
+	console.log('<WebSocket> Local Operation sent: { type: ' + msg.op +', param: '+ JSON.stringify(msg.param) +' }');
 };
 
 var jupiterClient = new JupiterNode(/*TO DO: generate unique ID */ 0, '');
@@ -19,13 +19,13 @@ jupiterClient.socket.on('connect', function () {
 		
 		
 		jupiterClient.socket.on('op', function(opMsg) { // When receiving an operation from the server:
-			console.log('<WebSocket> Distant Operation received: { type: ' + opMsg.op +', param: '+ opMsg.param +' }');
+			console.log('<WebSocket> Distant Operation received: { type: ' + opMsg.op +', param: '+ JSON.stringify(opMsg.param) +' }');
 			opMsg = jupiterClient.receive(opMsg);
 			// Applying the operations to the GUI:
 			if (opMsg.op == 'nAdd') {
 				addNote(opMsg.param.id, opMsg.param);
 			}
-			else if (opMsg.op == 'cIns' || opMsg.op == 'cDel') {
+			else if (opMsg.op == 'cIns' || opMsg.op == 'cDel' || opMsg.op == 'sIns' || opMsg.op == 'sDel') {
 				if (jupiterClient.data[opMsg.param.id].state == 10) { // Must first restore the note
 					addNote(opMsg.param.id, jupiterClient.data[opMsg.param.id]);
 					jupiterClient.data[opMsg.param.id].state = 1;
@@ -48,12 +48,14 @@ jupiterClient.socket.on('connect', function () {
 			else if (opMsg.op == 'nDel') {
 				$('#'+ opMsg.param.id).remove();
 			}
-			console.log('<Update> Distant Operation #' + jupiterClient.otherMessages + ' applied: { type: ' + opMsg.op +', param: '+ opMsg.param +' }');
+			console.log('<Update> Distant Operation #' + jupiterClient.otherMessages + ' applied: { type: ' + opMsg.op +', param: '+ JSON.stringify(opMsg.param) +' }');
 		});
 
 		jupiterClient.data = data.data
 		for (var id in jupiterClient.data) {
-			addNote(id,jupiterClient.data[id]);
+			if (jupiterClient.data[id].state) { // Creating the GUI note only if the data note doesn't have the state "deleted"
+				addNote(id,jupiterClient.data[id]);
+			}
 		}
 
 		var $btnAddNote = $('<button id="addNote">Add Note</button>');
@@ -129,15 +131,12 @@ function addNote(id, noteData) {
 			//var text = data.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '&para;<BR>');
 			switch (op) {
 				case DIFF_INSERT:
-					for (var l = 0; l < data.length; l++) {
-						jupiterClient.generate( {op: 'cIns', param: {id: cId, pos: currentPosition, char: data[l]}} ); // Generating the corresponding cIns operation.
-						currentPosition++; // Moving carret of 1 char.
-					}
+					jupiterClient.generate( {op: 'sIns', param: {id: cId, pos: currentPosition, str: data, size: data.length}} ); // Generating the corresponding sIns operation.
+					currentPosition += data.length; // Moving carret of the size of the string.
+
 					break;
 				case DIFF_DELETE:
-					for (var l = 0; l < data.length; l++) {
-						jupiterClient.generate( {op: 'cDel', param: {id: cId, pos: currentPosition}} ); // Generating the corresponding cDel operation.
-					}
+					jupiterClient.generate( {op: 'sDel', param: {id: cId, pos: currentPosition, size: data.length}} ); // Generating the corresponding sDel operation.
 					break;
 				case DIFF_EQUAL:
 					// We move the carret of data.length:
