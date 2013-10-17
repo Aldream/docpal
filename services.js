@@ -69,9 +69,9 @@ function parseRequest(req, names) {
  */
 function saveNote(id, noteData, cb) {
 	var note = new modelNote(noteData);
-	modelNote.update({ id: noteData.id }, noteData, { upsert: true }, function (err, numberAffected, raw) {
+	modelNote.update({ id: id }, noteData, { upsert: true }, function (err, numberAffected, raw) {
 		if (err) { logger.error(err); return cb(note, false); }
-		else { logger.info('<MongoDB> Note #'+note.id+' saved: '+ raw); return cb(note, true); }
+		else { logger.info('<MongoDB> Note #'+id+' saved: '+ raw); return cb(note, true); }
 	});
 }
 function serviceSaveNote(req, resp) {
