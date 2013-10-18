@@ -1,24 +1,77 @@
+$.fn.exists = function () { // Snippet to know if a Jquery selector returns something or not
+    return this.length !== 0;
+}
+
 var socket = io.connect();
 JupiterNode.prototype.send = function(msg) {
 	socket.emit('op', msg);
 	console.log('<WebSocket> Local Operation sent: { type: ' + msg.op +', param: '+ JSON.stringify(msg.param) +' }');
 };
 
-var jupiterClient = new JupiterNode(/*TO DO: generate unique ID */ 0, '');
-var diffMatchPatchFunc = new diff_match_patch();
+var	jupiterClient = new JupiterNode(/*TO DO: generate unique ID */ 0, ''),				// Jupiter Node
+	diffMatchPatchFunc = new diff_match_patch(),										// Text-diff Processor
+	otherclientsList = [],																// List of connected clients
+	palsList = [];																		// List of connected users (a user can run numerous client nodes)
 
-jupiterClient.socket = socket;
-var $notesDiv = $('<div id="notes"></div>');
 
-jupiterClient.socket.on('connect', function () {
+var	$notesDiv = $('<div id="notes"></div>'),											// Container for the notes
+	$palsUl = $('<ul id="pals"><li class="you" id="pal-'+user+'">'+user+'</li></ul>');	// List of connected pals
+palsList[user] = 1; // Adding the user her/himself to the list.
+
+socket.on('hi', function(palsInfo) { // When new clients join
+	for (var i = 0; i < palsInfo.length; i++) {
+		var palInfo = palsInfo[i];
+		console.log('<WebSocket> Client joined:' + JSON.stringify(palInfo));
+		otherclientsList[palInfo.id] = palInfo.username;
+		
+		if (palsList[palInfo.username]) { // This pal already had at least 1 connection:
+			palsList[palInfo.username]++;
+			if (palsList[palInfo.username] == 2) { // This pal had previously only 1 connection:
+				$('#pal-'+palInfo.username).append('<span class="nodeNum">2</span>');
+			}
+			else { // This pal had already more than 1 connection
+				$('#pal-'+palInfo.username+ ' .nodeNum').text(palsList[palInfo.username]);
+			}
+		}
+		else { // New pal:
+			palsList[palInfo.username] = 1;
+			$palsUl.append('<li id="pal-'+palInfo.username+'">'+palInfo.username+'</li>');
+		}
+	}
+
+});
+
+socket.on('bye', function(palInfo) { // When a client leaves
+	var username = otherclientsList[palInfo.id];
+	console.log('<WebSocket> Client left:' + JSON.stringify(palInfo) + ' (username: ' + username + ')');
+	delete otherclientsList[palInfo.id];
+	
+	if (palsList[username] > 1) { // This pal still has other client nodes connected
+		palsList[username]--;
+		if (palsList[username] == 1) { // This pal now has only 1 node
+			$('#pal-'+username+ ' .nodeNum').remove();
+		}
+		else {
+			$('#pal-'+username+ ' .nodeNum').text(palsList[username]);
+		}
+	}
+	else { // Fully disconnected
+		delete palsList[username];
+		$('#pal-'+username).remove();
+	}
+
+});
+		
+socket.on('connect', function () {
 	console.log('<WebSocket> Connected.');
 
-	jupiterClient.socket.on('data', function(data) { // When receiving a version of the shared doc:
+	socket.on('data', function(data) { // When receiving a version of the shared doc:
 		// TO DO: Check for uncommited modifications before.
 		console.log('<WebSocket> Server\'s Data received.');
 		
 		
-		jupiterClient.socket.on('op', function(opMsg) { // When receiving an operation from the server:
+		socket.on('op', function(opMsg) { // When receiving an operation from the server:
+			opMsg = opMsg.msg;
 			console.log('<WebSocket> Distant Operation received: { type: ' + opMsg.op +', param: '+ JSON.stringify(opMsg.param) +' }');
 			opMsg = jupiterClient.receive(opMsg);
 			// Applying the operations to the GUI:
@@ -73,7 +126,8 @@ jupiterClient.socket.on('connect', function () {
 		});
 		
 		// Client is connected to the server and ready - let's enable the edition:
-		$('#jupiterDoc').html($btnAddNote)
+		$('#jupiterDoc').html($palsUl);
+		$('#jupiterDoc').append($btnAddNote)
 		$('#jupiterDoc').append($notesDiv);
 		
 		// TO DO: Tell the user (s)he can starts editing now.

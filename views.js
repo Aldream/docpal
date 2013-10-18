@@ -1,21 +1,25 @@
 var config = require("./config");
-
-// Models:
-//var modelxxx = require("./model/xxx");
 var logger = require("./logger");
 
 var rest = config.getProperty("security.ssl") ? "https://" : "http://";
 rest += config.getProperty("rest.url");
+rest += ':'+config.getProperty("rest.port");
 
 /*
  * VIEW Index
  */
 function viewIndex(req, res) {
-	logger.debug("Viewing index.");
-
-	res.render('index', {title: "Accueil", rest: rest});
+	logger.debug("<View> Viewing index (User "+req.session.username+").");
+	res.render('index', {title: "Main", rest: rest, username: req.session.username});
 }
 
+/*
+ * VIEW SignIn
+ */
+function viewSignin(req, res) {
+	logger.debug("<View> Viewing signin.");
+	res.render('signin', {title: "Sign-In", rest: rest});
+}
 
 
 /*
@@ -23,7 +27,7 @@ function viewIndex(req, res) {
  */
 function viewLogin(req, res) {
 	next = req.param("next", null);
-	logger.info("Viewing login page. Next is : " + next);
+	logger.info("<View> Viewing login page. Next is : " + next);
 	res.render('login', {title: "Login", rest: rest, next: next, error: null});
 }
 
@@ -50,16 +54,17 @@ function twoDigits(nb) {
 
 
 function viewNotfound(req, res) {
-	logger.warn("View not found : " + req.url);
+	logger.warn("<View> View not found : " + req.url);
 	res.render('404', {title: "Page non trouvée", rest: rest});
 }
 
 function viewHelp(req, res) {
-	logger.info("Viewing help page.");
+	logger.info("<View> Viewing help page.");
 	res.render('help', {title: "Aide", rest: rest});
 }
 
 exports.index = viewIndex;
+exports.signin = viewSignin;
 exports.login = viewLogin;
 exports.notfound = viewNotfound;
 exports.help = viewHelp;
