@@ -3,13 +3,13 @@
  * SCHEMA - Snapshot
  * 		by Benjamin (Bill) Planche / Aldream 
  * =================
- * Defines a version of the shared file at a certain moment.
+ * Defines a version of the shared environment at a certain moment.
  */
 module.exports = function(mongoose) {
 	var Schema = mongoose.Schema;
 	var SnapshotSchema = new Schema({
-		_id			: Schema.Types.ObjectId,
-		blob  		: Buffer,
+		_id		: Schema.Types.ObjectId,
+		content  	: [String],
 		idLastOp   	: {type : String, default : '', trim : true},
 		timestamp	: {type : Date, default : Date.now}
 	})

@@ -1,0 +1,71 @@
+<% layout('layout') -%>
+
+<div class="page-header">
+	<div class="row">
+		<div class="span1">
+			<img src="images/logo.png" alt="RiTHM" />
+		</div>
+		<div class="span11" id="userCreation">
+			<h2>Welcome!</h2>
+			<form class="well form-vertical">
+				<p>
+				<input type="text" class="input-medium" name="username" id="username" required="required" placeholder="Username"/><span id="errorLogin"></span><br />
+				<input type="password" class="input-medium" name="password" id="password" required="required" placeholder="Password"/><span id="errorPassword"></span><br />
+				<button type="submit" class="btn-primary">Sign</button>
+				</p>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<section class="span10">
+		<div id="buildingContainer" >		
+		</div>
+	</section>
+</div>
+<script>
+	$(function() { //shorthand document.ready function
+		$('form').on('submit', function(e) { //use on if jQuery 1.7+
+			e.preventDefault();  //prevent form from submitting
+			createUser();
+		});
+	});
+	function createUser() {
+		var username = $('#username').val();
+		var password = $('#password').val();
+		
+		if (!username) {
+			$('#errorLogin').text('Empty!');
+			return;
+		}
+		if (!password) {
+			$('#errorPassword').text('Empty!');
+			return;
+		}
+		
+		$('#userCreation').append('<div class="modalDialog"><p>Processing...</p></div>');
+		$('.modalDialog').css('opacity', 1);
+		
+		$.ajax({
+			type: 'POST',
+			url: rest+'/createUser',
+			data: {username: username, password: password},
+			success: function(data) {
+				if (data.success) {
+					$('.modalDialog > p').text('Success! Welcome aboard!');
+					 setTimeout(function(){window.location.href = '/login'}, 1000);
+				}
+				else {
+					$('.modalDialog').css('opacity', 0);
+					 setTimeout(function(){$('.modalDialog').remove()}, 400);
+					 $('#errorLogin').text('Already used, sorry.');
+					 $('#username').focus();
+					 $('#username').select();
+				}
+			},
+			dataType: 'json',
+			async:true
+		});     
+	}
+</script>

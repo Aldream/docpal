@@ -1,12 +1,12 @@
-var express = require("express");
-var http = require('http');
-var fs = require("fs");
-var engine = require('ejs-locals');
-
-var config = require("./config");
-var services = require("./services");
-var views = require("./views");
-var authModule = require("./auth").authModule;
+var	express = require("express"),
+	mongoose = require('mongoose'),
+	http = require('http'),
+	fs = require("fs"),
+	engine = require('ejs-locals'),
+	connect = require('connect'),
+	io = require('socket.io'),
+	sessionSockets = require('session.socket.io'),
+	config = require("./config");
 
 var logger = require("./logger");
 
@@ -21,15 +21,36 @@ logger.warn("Security activated : " + securityActivated);
 var sslActivated = config.getProperty("security.ssl");
 logger.warn("SSL activated : " + sslActivated);
 
-// REST Server config
+
+/* ------------------------
+ * DB connection
+ * ------------------------
+ */
+mongoose.connect('mongodb://localhost/docpal', function(err) {
+  if (err) { logger.error(err); }
+});
+
+var modelOperation = require("./model/operation")(mongoose).model;
+var modelUser = require("./model/user")(mongoose).model;
+var modelNote = require("./model/note")(mongoose).model;
+var modelSnapshot = require("./model/snapshot")(mongoose).model;
+
+var	services = require("./services")(mongoose, modelUser, modelOperation, modelNote, modelSnapshot),
+	views = require("./views"),
+	authModule = require("./auth")(modelUser);
+
+/* ------------------------
+ * REST Server config
+ * ------------------------
+ */
 var rest;
 if(sslActivated) {
-	rest = express.createServer({
+	rest = express({
 		key: fs.readFileSync('security/server.key'),
 		cert: fs.readFileSync('security/server.crt')
 	});
 } else {
-	rest = express.createServer();
+	rest = express();
 }
 rest.configure(function() {
 	rest.use(express.bodyParser()); // retrieves automatically req bodies
@@ -38,7 +59,8 @@ rest.configure(function() {
 
 // Service:
 serviceHandler = {};
-serviceHandler["/doc"] = services.last_snapshot;
+serviceHandler["/doc"] = services.rest.getLastSnapshot;
+serviceHandler["/createUser"] = services.rest.createUser;
 //serviceHandler["/xxx"] = services.xxx;
 
 for (var url in serviceHandler) {
@@ -46,20 +68,28 @@ for (var url in serviceHandler) {
 }
 
 logger.warn("REST routes activated.");
-rest.listen(1337);
+var serverRest = http.createServer(rest);
+serverRest.listen(config.getProperty("rest.port"));
 logger.warn("REST server is listening.");
 
-// HTML Server config
+
+/* ------------------------
+ * HTML Server config
+ * ------------------------
+ */
 var html;
 if(sslActivated) {
-	html = express.createServer({
+	html = express({
 		key: fs.readFileSync('security/server.key'),
 		cert: fs.readFileSync('security/server.crt')
 	});
 } else {
-	html = express.createServer();
+	html = express();
 }
 
+// Session config:
+var	cookieParser = express.cookieParser(config.getProperty("session.secret")),
+	sessionStore = new connect.middleware.session.MemoryStore();
 
 html.configure(function() {
 	// use ejs-locals for all ejs templates:
@@ -70,15 +100,15 @@ html.configure(function() {
 	html.set('view engine', 'ejs');
 	
 	// Stuff needed for sessions
-	html.use(express.cookieParser());
-	html.use(express.session(
-		{ secret: "One does not simply walk into website." }));
+	html.use(cookieParser);
+	html.use(express.session({ store: sessionStore }));
 });
 
 // Different views of the HTML server :
 viewHandler = {};
 viewHandler["/(index)?"] = views.index;
 viewHandler["/login"] = views.login;
+viewHandler["/signin"] = views.signin;
 viewHandler["/help"] = views.help;
 //viewHandler["/doc"] = views.doc;
 //viewHandler["/xxx"] = views.xxx;
@@ -100,28 +130,106 @@ for (var url in viewHandler) {
 
 logger.warn("HTML Server routes activated.");
 var serverHtml = http.createServer(html);
-serverHtml.listen(8080);
+serverHtml.listen(config.getProperty("http.port"));
 
 logger.warn("HTML Server is listening.");
 
 
-var io = require('socket.io').listen(serverHtml);
-var JupiterNode = require('./lib/module.jupiterNode.class').JupiterNode;
-var jupiterServerNode = new JupiterNode(0, '');
-logger.debug(jupiterServerNode);
-	
-io.sockets.on('connection', function (socket) {
-	logger.info('<Websocket> Client ' + socket.id + ' - Connection.');
-	socket.emit('data', { data: jupiterServerNode.data });
+/* ---------------------
+ * JUPITER SERVER, using Socket.io:
+ * ---------------------
+ */
+var JupiterNode = require('./lib/module.jupiterNode.class')(services.local),
+	ioServer = io.listen(serverHtml),
+	sessionIO = new sessionSockets(ioServer, sessionStore, cookieParser),
+	clientsArray = [];
 
-	socket.on('op', function (msg) { // When receiving an operation from a client
-		logger.info('<Websocket> Client ' + socket.id + ' - Operation Msg: { type: ' + msg.op + ', param: ' + msg.param + ' }');
-		msg = jupiterServerNode.receive(msg); // Applying it locally
-		socket.broadcast.emit('op', msg); // Sending to all the other clients
+services.local.readAllActiveNotes(function(err, notes) { // First we retrieve potential data from the DB
+	if (err) { logger.info('<MongoDB> No data retrieve from previous instances: '+ err); }
+	var data = {};
+	if (notes) {
+		logger.info('<MongoDB> Notes retrieved. Number = '+notes.length);
+		notes.forEach(function(note) {
+				data[note.id] = {
+				x: note.x,
+				y: note.y,
+				text: note.text,
+				type: note.type,
+				state: note.state
+			};
+		});
+	}
+
+	var jupiterServerNode = new JupiterNode(0, data, function sendOp(idSocket, msg, idSender) {
+			ioServer.sockets.sockets[idSocket].emit('op', {sender: idSender, msg: msg});
 	});
 
-	socket.on('disconnect', function() {
-		logger.info('<Websocket> Client ' + socket.id + ' - Disconnection.');
+	sessionIO.on('connection', function (err, socket, session) { // On connection of a client:
+		if (!session || !session.auth) { // If the user isn't authentified:
+			socket.disconnect('unauthorized');
+		}
+		else {
+			logger.info('<Websocket> Client ' + session.username + ' (socket # '+socket.id+') - Connection.');
+			jupiterServerNode.addClient(socket.id);
+
+			socket.emit('data', { data: jupiterServerNode.data }); // Sending her/him the current data
+
+			socket.on('op', function (msg) { // When receiving an operation from a client
+				logger.info('<Websocket> Client ' + session.username + ' (socket # '+socket.id + ') - Operation Msg: { type: ' + msg.op + ', param: ' + JSON.stringify(msg.param) + ' }');
+				msg = jupiterServerNode.receive(socket, msg); // Applying it locally
+				
+			});
+
+			socket.on('disconnect', function() {// On disconnection of a client:
+				logger.info('<Websocket> Client ' + session.username + ' (socket # '+socket.id + ') - Disconnection.');
+				socket.broadcast.emit('bye', {id: socket.id});
+				jupiterServerNode.removeClient(socket.id);
+				delete clientsArray[socket.id];
+			});
+			
+			// For the new client, we send an array with all the other connected clients:
+			var clientsObjArray = [];
+			for (var id in clientsArray) { clientsObjArray.push({id:id, username: clientsArray[id] }) }
+			socket.emit('hi', clientsObjArray);
+			clientsArray[socket.id] = session.username;
+			
+			// For the others clients, we introduce the newcomer:
+			socket.broadcast.emit('hi', [{id: socket.id, username: session.username}]);
+		}
 	});
 });
+
+function clone(obj) {
+	// Handle the 3 simple types, and null or undefined
+	if (null == obj || "object" != typeof obj) return obj;
+
+	// Handle Date
+	if (obj instanceof Date) {
+		var copy = new Date();
+		copy.setTime(obj.getTime());
+		return copy;
+	}
+
+	// Handle Array
+	if (obj instanceof Array) {
+		var copy = [];
+		for (var i = 0, len = obj.length; i < len; i++) {
+			copy[i] = clone(obj[i]);
+		}
+		return copy;
+	}
+
+	// Handle Object
+	if (obj instanceof Object) {
+		var copy = {};
+		for (var attr in obj) {
+			if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
+		}
+		return copy;
+	}
+
+	throw new Error("Unable to copy obj! Its type isn't supported.");
+}
+
+
 
