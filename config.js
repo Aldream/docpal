@@ -5,10 +5,17 @@ var config = {
 	},
 	"security" : {
 		"ssl" : false,
-		"auth" : false
+		"auth" : true
 	},
 	"rest" : {
-		"url" : "localhost:1337"
+		"url" : "localhost",
+		"port" : 1337
+	},
+	"http" : {
+		"port" : 8080
+	},
+	"session" : {
+		"secret" : "One does not simply walk into this website."
 	}
 };
 
