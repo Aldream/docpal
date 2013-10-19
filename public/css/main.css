@@ -1,0 +1,568 @@
+/*! HTML5 Boilerplate v4.3.0 | MIT License | http://h5bp.com/ */
+
+/*
+ * What follows is the result of much research on cross-browser styling.
+ * Credit left inline and big thanks to Nicolas Gallagher, Jonathan Neal,
+ * Kroc Camen, and the H5BP dev community and team.
+ */
+
+/* ==========================================================================
+   Base styles: opinionated defaults
+   ========================================================================== */
+
+html,
+button,
+input,
+select,
+textarea {
+    color: #222;
+}
+
+html {
+    font-size: 1em;
+    line-height: 1.4;
+}
+
+/*
+ * Remove text-shadow in selection highlight: h5bp.com/i
+ * These selection rule sets have to be separate.
+ * Customize the background color to match your design.
+ */
+
+::-moz-selection {
+    background: #b3d4fc;
+    text-shadow: none;
+}
+
+::selection {
+    background: #b3d4fc;
+    text-shadow: none;
+}
+
+/*
+ * A better looking default horizontal rule
+ */
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
+}
+
+/*
+ * Remove the gap between images, videos, audio and canvas and the bottom of
+ * their containers: h5bp.com/i/440
+ */
+
+audio,
+canvas,
+img,
+video {
+    vertical-align: middle;
+}
+
+/*
+ * Remove default fieldset styles.
+ */
+
+fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+
+/*
+ * Allow only vertical resizing of textareas.
+ */
+
+textarea {
+    resize: vertical;
+}
+
+/* ==========================================================================
+   Browse Happy prompt
+   ========================================================================== */
+
+.browsehappy {
+    margin: 0.2em 0;
+    background: #ccc;
+    color: #000;
+    padding: 0.2em 0;
+}
+
+/* ==========================================================================
+   Author's custom styles
+   ========================================================================== */
+
+body{
+	font-family: Cambria, Palatino, "Palatino Linotype", "Palatino LT STD", Georgia, serif;
+	background: #fff url(../images/bg.jpg) repeat top left;
+	font-weight: 400;
+	font-size: 15px;
+	color: #1d3c41;
+	overflow-y: scroll;
+}
+
+a{
+	color: #333;
+	text-decoration: none;
+}
+
+.container{
+	width: 100%;
+	height: 100%;
+	min-height: 100%;
+	position: relative;
+	text-align: center;
+}
+
+.header * {
+	display: inline-block;
+	margin-top: 0;
+}
+
+.header h1 a {
+	font-size: 2em;
+	color: #fff;
+	text-shadow: 0 0 1px #000;
+	margin: 0 .4em 0 .2em;
+}
+
+footer {
+	margin-top: .5em;
+	font-size: .7em;
+	color: #444;
+	position: absolute;
+	top: 0;
+	right: .5em;
+}
+footer a{
+	font-family: Courier;
+	color: #222;
+	text-decoration: underline;
+}
+
+#addNote {
+	height:50px;
+	width:50px;
+	border-radius: 5px;
+	
+}
+
+.note {
+	font-size: .8em;
+	color: #444;
+	cursor: move;
+	width: 275px;
+	height: 275px;
+	background-color: #fefef5;
+	position: absolute;
+	border: 1px #eee solid;
+	border-top: 15px #dedeed solid;
+	border-radius: 2px 2px 6px 2px;
+	-webkit-box-shadow: 0 0 1px rgba(0,0,0,0.7);
+	-moz-box-shadow: 0 0 1px rgba(0,0,0,0.7);
+	box-shadow: 0 0 1px rgba(0,0,0,0.7);
+	transition: box-shadow .5s;
+	-webkit-transition: box-shadow .5s;
+}
+.note::after {
+	content: "";
+	position: absolute;
+	bottom: 10px;
+	left: 3%;
+	width: 95%;
+	height: 10%;
+	float: right;
+	z-index: -1;
+	-webkit-box-shadow: 0 10px 10px rgba(0,0,0,0.7);
+	-moz-box-shadow: 0 10px 10px rgba(0,0,0,0.7);
+	box-shadow: 0 10px 10px rgba(0,0,0,0.7);
+	-webkit-transform: rotate(2deg);
+	-moz-transform: rotate(2deg);
+	-ms-transform: rotate(2deg);
+	-o-transform: rotate(2deg);
+	transform: rotate(2deg);
+	transition: box-shadow .5s 1s;
+	-webkit-transition: box-shadow .5s 1s;
+	-webkit-filter: custom(url(cylindricalConeTransform.vs) /* Vertex-shader */
+		mix(url(cylindricalConeTransform.fs) normal source-atop /* Fragment-shader and color-mixing properties */),
+		36 2 /* Numbers of vertices */,
+		/* Passing the values to the shaders uniforms: */
+		amount 0,
+		cylinderRadius 0.35,
+		cylinderLength 250,
+		transform rotateY(0deg) rotateX(0deg));
+
+	-webkit-transition: -webkit-filter linear 1s; /* Transition on the filter for animation. */
+}
+
+.drag{
+	z-index: 999;
+	box-shadow: 10px 10px 10px rgba(0,0,0,0.3);
+	border-radius: 2px 2px 2px 2px;
+	transition: box-shadow .5s;
+	-webkit-transition: box-shadow .5s;
+	/* Same as above, but with different values for some uniforms. With the CSS-transition, those values will be tweened. */
+	filter: custom(url(cylindricalConeTransform.vs) mix(url(cylindricalConeTransform.fs) normal source-atop), 36 2,
+		amount .3,
+		cylinderRadius 0.35,
+		cylinderLength 250,
+		transform rotateY(60deg) rotateX(60deg));
+}
+.drag::after{
+	-webkit-box-shadow: none;
+	-moz-box-shadow: none;
+	box-shadow: none;
+	transition: box-shadow .5s;
+	-webkit-transition: box-shadow .5s;
+}
+
+.note textarea {
+	resize: none;
+	margin-top: 7px;
+	width: 244px;
+	height: 244px;
+	background-color: #fffffa;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px #777 dashed;
+	padding: 7px;
+}
+
+.deleteNote {
+	cursor: pointer;
+	font-size: 1.5em;
+	position: absolute;
+	margin: 0;
+	padding: 0;
+	top: -20px;
+	right: 0;
+}
+
+#addNote {
+	position: relative;
+	top: -7px;
+	left: 7px;
+}
+
+#pals li {
+	position: relative;
+	top: -25px;
+	margin: .3em;
+	padding: .2em;
+	border: 1px #aaa solid;
+	border-radius: 5px;
+	background: #fff;
+	font-size: .8em;
+}
+
+.you {
+	font-weight: bold;
+}
+
+.nodeNum{
+	float: right;
+	position: relative;
+	margin: .1em;
+	top: -.3em;
+	left: .1em;
+	font-size: .7em;
+}
+
+#logout {
+	position: relative;
+	top: -22px;
+	margin: .3em;
+	padding: 0.2em;
+	font-size: 2em;
+	font-weight: bold;
+	text-shadow: 0 -1px 1px rgb(0,0,0,.4);
+	color: #f24537;
+	border-radius: 999px;
+	margin-left: -.3em;
+}
+
+.modalDialog {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background: rgba(0,0,0,0.8);
+	z-index: 9999;
+	opacity:0;
+	-webkit-transition: opacity 400ms ease-in;
+	-moz-transition: opacity 400ms ease-in;
+	transition: opacity 400ms ease-in;
+	pointer-events: none;
+}
+.modalDialog > div {
+	width: 400px;
+	position: relative;
+	margin: 10% auto;
+	padding: 5px 20px 13px 20px;
+	border-radius: 10px;
+	background: #fff;
+	background: -moz-linear-gradient(#fff, #999);
+	background: -webkit-linear-gradient(#fff, #999);
+	background: -o-linear-gradient(#fff, #999);
+}
+
+h2 {
+	font-size: 4em;
+	margin: 0;
+}
+
+input {
+	width: 15em;
+	height: 2em;
+	margin-bottom: .5em;
+	font-size: 2em;
+	border-radius: 20px;
+	text-align: center;
+}
+
+#errorMsg {
+	color: #f24537;
+}
+
+button {
+	-moz-box-shadow:inset 0px 1px 0px 0px #d9fbbe;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #d9fbbe;
+	box-shadow:inset 0px 1px 0px 0px #d9fbbe;
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #b8e356), color-stop(1, #a5cc52) );
+	background:-moz-linear-gradient( center top, #b8e356 5%, #a5cc52 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#b8e356', endColorstr='#a5cc52');
+	background-color:#b8e356;
+	-webkit-border-top-left-radius:6px;
+	-moz-border-radius-topleft:6px;
+	border-top-left-radius:6px;
+	-webkit-border-top-right-radius:6px;
+	-moz-border-radius-topright:6px;
+	border-top-right-radius:6px;
+	-webkit-border-bottom-right-radius:6px;
+	-moz-border-radius-bottomright:6px;
+	border-bottom-right-radius:6px;
+	-webkit-border-bottom-left-radius:6px;
+	-moz-border-radius-bottomleft:6px;
+	border-bottom-left-radius:6px;
+	text-indent:0;
+	border:1px solid #83c41a;
+	display:inline-block;
+	color:#ffffff;
+	font-family:Arial;
+	font-size: 2em;
+	font-weight:bold;
+	font-style:normal;
+	text-decoration:none;
+	text-align:center;
+	text-shadow:0px 1px 0px #86ae47;
+}
+button:hover {
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #b8e356), color-stop(1, #a5cc52) );
+	background:-moz-linear-gradient( center top, #b8e356 5%, #a5cc52 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#b8e356', endColorstr='#a5cc52');
+	background-color:#b8e356;
+	background-color:#a5cc52;
+}
+button:active {
+	position:relative;
+	top:1px;
+	-moz-box-shadow:inset 0px 1px 0px 0px #d9fbbe, 0 -1px 1px 0 rgba(0,0,0,0.3);
+	-webkit-box-shadow:inset 0px 1px 0px 0px #d9fbbe, 0 -1px 1px 0 rgba(0,0,0,0.3);
+	box-shadow:inset 0px 1px 0px 0px #d9fbbe, 0 -1px 1px 0 rgba(0,0,0,0.3);
+}
+/* ==========================================================================
+   Helper classes
+   ========================================================================== */
+
+/*
+ * Image replacement
+ */
+
+.ir {
+    background-color: transparent;
+    border: 0;
+    overflow: hidden;
+    /* IE 6/7 fallback */
+    *text-indent: -9999px;
+}
+
+.ir:before {
+    content: "";
+    display: block;
+    width: 0;
+    height: 150%;
+}
+
+/*
+ * Hide from both screenreaders and browsers: h5bp.com/u
+ */
+
+.hidden {
+    display: none !important;
+    visibility: hidden;
+}
+
+/*
+ * Hide only visually, but have it available for screenreaders: h5bp.com/v
+ */
+
+.visuallyhidden {
+    border: 0;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+}
+
+/*
+ * Extends the .visuallyhidden class to allow the element to be focusable
+ * when navigated to via the keyboard: h5bp.com/p
+ */
+
+.visuallyhidden.focusable:active,
+.visuallyhidden.focusable:focus {
+    clip: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    position: static;
+    width: auto;
+}
+
+/*
+ * Hide visually and from screenreaders, but maintain layout
+ */
+
+.invisible {
+    visibility: hidden;
+}
+
+/*
+ * Clearfix: contain floats
+ *
+ * For modern browsers
+ * 1. The space content is one way to avoid an Opera bug when the
+ *    `contenteditable` attribute is included anywhere else in the document.
+ *    Otherwise it causes space to appear at the top and bottom of elements
+ *    that receive the `clearfix` class.
+ * 2. The use of `table` rather than `block` is only necessary if using
+ *    `:before` to contain the top-margins of child elements.
+ */
+
+.clearfix:before,
+.clearfix:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+}
+
+.clearfix:after {
+    clear: both;
+}
+
+/*
+ * For IE 6/7 only
+ * Include this rule to trigger hasLayout and contain floats.
+ */
+
+.clearfix {
+    *zoom: 1;
+}
+
+/* ==========================================================================
+   EXAMPLE Media Queries for Responsive Design.
+   These examples override the primary ('mobile first') styles.
+   Modify as content requires.
+   ========================================================================== */
+
+@media only screen and (min-width: 35em) {
+    /* Style adjustments for viewports that meet the condition */
+}
+
+@media print,
+       (-o-min-device-pixel-ratio: 5/4),
+       (-webkit-min-device-pixel-ratio: 1.25),
+       (min-resolution: 120dpi) {
+    /* Style adjustments for high resolution devices */
+}
+
+/* ==========================================================================
+   Print styles.
+   Inlined to avoid required HTTP connection: h5bp.com/r
+   ========================================================================== */
+
+@media print {
+    * {
+        background: transparent !important;
+        color: #000 !important; /* Black prints faster: h5bp.com/s */
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    a,
+    a:visited {
+        text-decoration: underline;
+    }
+
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+
+    abbr[title]:after {
+        content: " (" attr(title) ")";
+    }
+
+    /*
+     * Don't show links for images, or javascript/internal links
+     */
+
+    .ir a:after,
+    a[href^="javascript:"]:after,
+    a[href^="#"]:after {
+        content: "";
+    }
+
+    pre,
+    blockquote {
+        border: 1px solid #999;
+        page-break-inside: avoid;
+    }
+
+    thead {
+        display: table-header-group; /* h5bp.com/t */
+    }
+
+    tr,
+    img {
+        page-break-inside: avoid;
+    }
+
+    img {
+        max-width: 100% !important;
+    }
+
+    @page {
+        margin: 0.5cm;
+    }
+
+    p,
+    h2,
+    h3 {
+        orphans: 3;
+        widows: 3;
+    }
+
+    h2,
+    h3 {
+        page-break-after: avoid;
+    }
+}

@@ -111,7 +111,7 @@ socket.on('connect', function () {
 			}
 		}
 
-		var $btnAddNote = $('<button id="addNote">Add Note</button>');
+		var $btnAddNote = $('<button id="addNote" title="Create a note">+</button>');
 		$btnAddNote.click(function(){
 			console.log('<Input> Local Operation Detected: Creation of a new Note.');
 			var noteData = {
@@ -126,8 +126,10 @@ socket.on('connect', function () {
 		});
 		
 		// Client is connected to the server and ready - let's enable the edition:
-		$('#jupiterDoc').html($palsUl);
-		$('#jupiterDoc').append($btnAddNote)
+		$('.header').append($btnAddNote);
+		$('.header').append($palsUl);
+		$('.header').append('<a id="logout" href="/logout" title="Log out">&times;</a>');
+		$('#waitMsg').remove();
 		$('#jupiterDoc').append($notesDiv);
 		
 		// TO DO: Tell the user (s)he can starts editing now.
@@ -169,6 +171,14 @@ function addNote(id, noteData) {
 			'top': dd.offsetY,
 			'left': dd.offsetX
 		});
+	});
+
+	$newnote.bind('dragstart', function (ev, dd) {
+		$(this).addClass('drag');
+	});
+
+	$newnote.bind('dragend', function (ev, dd) {
+		$(this).removeClass('drag');
 	});
 
 	$notetext.input(function() {
