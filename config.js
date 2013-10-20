@@ -14,6 +14,10 @@ var config = {
 	"http" : {
 		"port" : 8080
 	},
+	"db": {
+		"uri" :	"mongodb://heroku_app18689960:q5q2klk0eeonlv3bpdsd8bm02a@ds051758-a0.mongolab.com:51758,ds051758-a1.mongolab.com:51758/heroku_app18689960"
+				// 'mongodb://localhost/docpal'
+	},
 	"session" : {
 		"secret" : "One does not simply walk into this website."
 	}

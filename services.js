@@ -92,6 +92,7 @@ module.exports = function(mongoose, modelUser, modelOperation, modelNote, modelS
 	 */
 	function saveNote(id, noteData, cb) {
 		var note = new modelNote(noteData);
+		note.timestampLastOp = new Date();
 		modelNote.update({ id: id }, noteData, { upsert: true }, function (err, numberAffected, raw) {
 			if (err) { logger.error(err); return cb(note, false); }
 			else { logger.info('<MongoDB> Note #'+id+' saved: '+ raw); return cb(note, true); }
@@ -114,9 +115,9 @@ module.exports = function(mongoose, modelUser, modelOperation, modelNote, modelS
 	 *	- txt (String):		New content
 	 */
 	function updateNoteText(id, txt) {
-		modelNote.update({ id: id }, {text: txt}, {multi: false}, function (err, numberAffected, raw) {
+		modelNote.update({ id: id }, {text: txt, timestampLastOp: new Date()}, {multi: false}, function (err, numberAffected, raw) {
 			if (err) { logger.error(err); }
-			else { logger.info('<MongoDB> Note #'+id+' updated (text): '+ raw); }
+			else { logger.info('<MongoDB> Note #'+id+' updated (text): '+ JSON.stringify(raw)); }
 		});
 	}
 
@@ -128,7 +129,7 @@ module.exports = function(mongoose, modelUser, modelOperation, modelNote, modelS
 	 *	- cb (Function(error, results)):	Callback
 	 */
 	function readAllActiveNotes(cb) {
-		modelNote.find().where('state').gt(0).exec(cb);
+		modelNote.find().where('state').sort({timestampLastOp: 1}).gt(0).exec(cb);
 	}
 
 	/**
@@ -140,9 +141,9 @@ module.exports = function(mongoose, modelUser, modelOperation, modelNote, modelS
 	 *	- state (int):		New state
 	 */
 	function updateNoteState(id, state) {
-		modelNote.update({ id: id }, {state: state}, {multi: false}, function (err, numberAffected, raw) {
+		modelNote.update({ id: id }, {state: state, timestampLastOp: new Date()}, {multi: false}, function (err, numberAffected, raw) {
 			if (err) { logger.error(err); }
-			else { logger.info('<MongoDB> Note #'+id+' updated (state): '+ raw); }
+			else { logger.info('<MongoDB> Note #'+id+' updated (state): '+ JSON.stringify(raw)); }
 		});
 	}
 
@@ -156,9 +157,9 @@ module.exports = function(mongoose, modelUser, modelOperation, modelNote, modelS
 	 *	- y (int):		New Y position
 	 */
 	function updateNoteDrag(id, x, y) {
-		modelNote.update({ id: id }, {state: 2, x: x, y:y}, {multi: false}, function (err, numberAffected, raw) {
+		modelNote.update({ id: id }, {state: 2, x: x, y:y, timestampLastOp: new Date()}, {multi: false}, function (err, numberAffected, raw) {
 			if (err) { logger.error(err); }
-			else { logger.info('<MongoDB> Note #'+id+' updated (state + x + y -> drag): '+ raw); }
+			else { logger.info('<MongoDB> Note #'+id+' updated (state + x + y -> drag): '+ JSON.stringify(raw)); }
 		});
 	}
 

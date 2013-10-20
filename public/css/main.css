@@ -152,6 +152,7 @@ footer a{
 	
 }
 
+.note-box { position: absolute; z-index: 1; padding:0; margin:0;}
 .note {
 	font-size: .8em;
 	color: #444;
@@ -169,39 +170,8 @@ footer a{
 	transition: box-shadow .5s;
 	-webkit-transition: box-shadow .5s;
 }
-.note::after {
-	content: "";
-	position: absolute;
-	bottom: 10px;
-	left: 3%;
-	width: 95%;
-	height: 10%;
-	float: right;
-	z-index: -1;
-	-webkit-box-shadow: 0 10px 10px rgba(0,0,0,0.7);
-	-moz-box-shadow: 0 10px 10px rgba(0,0,0,0.7);
-	box-shadow: 0 10px 10px rgba(0,0,0,0.7);
-	-webkit-transform: rotate(2deg);
-	-moz-transform: rotate(2deg);
-	-ms-transform: rotate(2deg);
-	-o-transform: rotate(2deg);
-	transform: rotate(2deg);
-	transition: box-shadow .5s 1s;
-	-webkit-transition: box-shadow .5s 1s;
-	-webkit-filter: custom(url(cylindricalConeTransform.vs) /* Vertex-shader */
-		mix(url(cylindricalConeTransform.fs) normal source-atop /* Fragment-shader and color-mixing properties */),
-		36 2 /* Numbers of vertices */,
-		/* Passing the values to the shaders uniforms: */
-		amount 0,
-		cylinderRadius 0.35,
-		cylinderLength 250,
-		transform rotateY(0deg) rotateX(0deg));
-
-	-webkit-transition: -webkit-filter linear 1s; /* Transition on the filter for animation. */
-}
-
 .drag{
-	z-index: 999;
+	z-index: 99999;
 	box-shadow: 10px 10px 10px rgba(0,0,0,0.3);
 	border-radius: 2px 2px 2px 2px;
 	transition: box-shadow .5s;
@@ -242,6 +212,20 @@ footer a{
 	padding: 0;
 	top: -20px;
 	right: 0;
+}
+.modifiers {
+	font-size: .7em;
+	position: absolute;
+	width: 255px;
+	height: 12px;
+	margin: 0;
+	padding: 0;
+	top: -15px;
+	text-align: left;
+	left: 5px;
+}
+.modifier{
+	cursor: help;
 }
 
 #addNote {

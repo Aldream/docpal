@@ -26,7 +26,7 @@ logger.warn("SSL activated : " + sslActivated);
  * DB connection
  * ------------------------
  */
-mongoose.connect('mongodb://localhost/docpal', function(err) {
+mongoose.connect(config.getProperty("db.uri"), function(err) {
   if (err) { logger.error(err); }
 });
 

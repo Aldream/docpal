@@ -13,10 +13,12 @@ var	jupiterClient = new JupiterNode(/*TO DO: generate unique ID */ 0, ''),				//
 	otherclientsList = [],																// List of connected clients
 	palsList = [];																		// List of connected users (a user can run numerous client nodes)
 
+palsList[user] = {clientsNum : 1, color: randomColor(), opTracker: null}; // Adding the user her/himself to the list.
 
 var	$notesDiv = $('<div id="notes"></div>'),											// Container for the notes
-	$palsUl = $('<ul id="pals"><li class="you" id="pal-'+user+'">'+user+'</li></ul>');	// List of connected pals
-palsList[user] = 1; // Adding the user her/himself to the list.
+	$palsUl = $('<ul id="pals"><li class="you" id="pal-'+user+'" style="color:'+palsList[user].color+';" title="Nothing done since your connection">'+user+'</li></ul>');	// List of connected pals
+
+// TO DO: Improve zIndex update
 
 socket.on('hi', function(palsInfo) { // When new clients join
 	for (var i = 0; i < palsInfo.length; i++) {
@@ -25,17 +27,17 @@ socket.on('hi', function(palsInfo) { // When new clients join
 		otherclientsList[palInfo.id] = palInfo.username;
 		
 		if (palsList[palInfo.username]) { // This pal already had at least 1 connection:
-			palsList[palInfo.username]++;
-			if (palsList[palInfo.username] == 2) { // This pal had previously only 1 connection:
+			palsList[palInfo.username].clientsNum++;
+			if (palsList[palInfo.username].clientsNum == 2) { // This pal had previously only 1 connection:
 				$('#pal-'+palInfo.username).append('<span class="nodeNum">2</span>');
 			}
 			else { // This pal had already more than 1 connection
-				$('#pal-'+palInfo.username+ ' .nodeNum').text(palsList[palInfo.username]);
+				$('#pal-'+palInfo.username+ ' .nodeNum').text(palsList[palInfo.username].clientsNum);
 			}
 		}
 		else { // New pal:
-			palsList[palInfo.username] = 1;
-			$palsUl.append('<li id="pal-'+palInfo.username+'">'+palInfo.username+'</li>');
+			palsList[palInfo.username] = {clientsNum : 1, color: randomColor(), opTracker: null};
+			$palsUl.append('<li id="pal-'+palInfo.username+'" style="color:'+palsList[palInfo.username].color+';" title="Nothing done since your connection">'+palInfo.username+'</li>');
 		}
 	}
 
@@ -46,13 +48,13 @@ socket.on('bye', function(palInfo) { // When a client leaves
 	console.log('<WebSocket> Client left:' + JSON.stringify(palInfo) + ' (username: ' + username + ')');
 	delete otherclientsList[palInfo.id];
 	
-	if (palsList[username] > 1) { // This pal still has other client nodes connected
-		palsList[username]--;
-		if (palsList[username] == 1) { // This pal now has only 1 node
+	if (palsList[username].clientsNum > 1) { // This pal still has other client nodes connected
+		palsList[username].clientsNum--;
+		if (palsList[username].clientsNum == 1) { // This pal now has only 1 node
 			$('#pal-'+username+ ' .nodeNum').remove();
 		}
 		else {
-			$('#pal-'+username+ ' .nodeNum').text(palsList[username]);
+			$('#pal-'+username+ ' .nodeNum').text(palsList[username].clientsNum);
 		}
 	}
 	else { // Fully disconnected
@@ -71,45 +73,67 @@ socket.on('connect', function () {
 		
 		
 		socket.on('op', function(opMsg) { // When receiving an operation from the server:
-			opMsg = opMsg.msg;
-			console.log('<WebSocket> Distant Operation received: { type: ' + opMsg.op +', param: '+ JSON.stringify(opMsg.param) +' }');
-			opMsg = jupiterClient.receive(opMsg);
+			var opUser = otherclientsList[opMsg.sender];
+			console.log('<WebSocket> Distant Operation received from '+opUser+'(# '+opMsg.sender+'): { type: ' + opMsg.msg.op +', param: '+ JSON.stringify(opMsg.msg.param) +' }');
+			opMsg.msg = jupiterClient.receive(opMsg.msg);
+			var txtOp = '';
 			// Applying the operations to the GUI:
-			if (opMsg.op == 'nAdd') {
-				addNote(opMsg.param.id, opMsg.param);
+			if (opMsg.msg.op == 'nAdd') {
+				jupiterClient.notesNum++;
+				addNote(opMsg.msg.param.id, opMsg.msg.param, jupiterClient.notesNum);
+				txtOp = 'just created the note';
 			}
-			else if (opMsg.op == 'cIns' || opMsg.op == 'cDel' || opMsg.op == 'sIns' || opMsg.op == 'sDel') {
-				if (jupiterClient.data[opMsg.param.id].state == 10) { // Must first restore the note
-					addNote(opMsg.param.id, jupiterClient.data[opMsg.param.id]);
-					jupiterClient.data[opMsg.param.id].state = 1;
+			else if (opMsg.msg.op == 'cIns' || opMsg.msg.op == 'cDel' || opMsg.msg.op == 'sIns' || opMsg.msg.op == 'sDel') {
+				if (jupiterClient.data[opMsg.msg.param.id].state == 10) { // Must first restore the note
+					addNote(opMsg.msg.param.id, jupiterClient.data[opMsg.msg.param.id], jupiterClient.notesNum);
+					jupiterClient.data[opMsg.msg.param.id].state = 1;
+					jupiterClient.notesNum++;
 				}
-				var $textarea = $('#'+ opMsg.param.id +' > textarea');
+				updateNotesZIndex(opMsg.msg.param.id, jupiterClient.notesNum);
+				var $textarea = $('#'+ opMsg.msg.param.id +' > textarea');
 				var currentCaretPos = doGetCaretPosition($textarea[0]);
-				$textarea.val(jupiterClient.data[opMsg.param.id].text);
+				$textarea.val(jupiterClient.data[opMsg.msg.param.id].text);
 				setCaretPosition($textarea[0], currentCaretPos);
+				txtOp = 'is editing the content of the note';
 			}
-			else if (opMsg.op == 'nDrag') {
-				if (jupiterClient.data[opMsg.param.id].state == 20) { // Must first restore the note
-					addNote(opMsg.param.id, jupiterClient.data[opMsg.param.id]);
-					jupiterClient.data[opMsg.param.id].state = 2;
+			else if (opMsg.msg.op == 'nDrag') {
+				if (jupiterClient.data[opMsg.msg.param.id].state == 20) { // Must first restore the note
+					addNote(opMsg.msg.param.id, jupiterClient.data[opMsg.msg.param.id], jupiterClient.notesNum);
+					jupiterClient.data[opMsg.msg.param.id].state = 2;
+					jupiterClient.notesNum++;
 				}
-				$('#'+ opMsg.param.id).css({
-					'top': opMsg.param.y,
-					'left': opMsg.param.x
+				updateNotesZIndex(opMsg.msg.param.id, jupiterClient.notesNum);
+				$('#'+ opMsg.msg.param.id).css({
+					'top': opMsg.msg.param.y,
+					'left': opMsg.msg.param.x
 				});
+				txtOp = 'is dragging the note';
 			}
-			else if (opMsg.op == 'nDel') {
-				$('#'+ opMsg.param.id).remove();
+			else if (opMsg.msg.op == 'nDel') {
+				$('#'+ opMsg.msg.param.id).remove();
+				txtOp = 'just deleted the note';
+				jupiterClient.notesNum--;
 			}
-			console.log('<Update> Distant Operation #' + jupiterClient.otherMessages + ' applied: { type: ' + opMsg.op +', param: '+ JSON.stringify(opMsg.param) +' }');
+			
+			if (opMsg.msg.param.id) {
+				logPalsActivity(opUser, txtOp, opMsg.msg.param.id);
+			}
+			console.log('<Update> Distant Operation #' + jupiterClient.otherMessages + ' applied: { type: ' + opMsg.msg.op +', param: '+ JSON.stringify(opMsg.msg.param) +' }');
 		});
 
-		jupiterClient.data = data.data
+		jupiterClient.data = data.data;
+		var lastOpTimeArray = [];
 		for (var id in jupiterClient.data) {
+			lastOpTimeArray.push({id: id, t: jupiterClient.data[id].timestampLastOp});
+		}
+		lastOpTimeArray.sort(function(a,b){return a.t > b.t});
+		for (var i = 0; i < lastOpTimeArray.length; i++) {
+			var id = lastOpTimeArray[i].id;
 			if (jupiterClient.data[id].state) { // Creating the GUI note only if the data note doesn't have the state "deleted"
-				addNote(id,jupiterClient.data[id]);
+				addNote(id,jupiterClient.data[id], i+1);
 			}
 		}
+		jupiterClient.notesNum = lastOpTimeArray.length;
 
 		var $btnAddNote = $('<button id="addNote" title="Create a note">+</button>');
 		$btnAddNote.click(function(){
@@ -121,8 +145,9 @@ socket.on('connect', function () {
 				text: ''
 			}
 			jupiterClient.generate( {op: 'nAdd', param: noteData} ); // Generating the corresponding nAdd
-
-			addNote(noteData.id, noteData) 
+			jupiterClient.notesNum++;
+			addNote(noteData.id, noteData, jupiterClient.notesNum);
+			logPalsActivity(user, 'just created the note', noteData.id);
 		});
 		
 		// Client is connected to the server and ready - let's enable the edition:
@@ -139,7 +164,17 @@ socket.on('connect', function () {
 	
 });
 
-function addNote(id, noteData) {
+function logPalsActivity(opUser, txtOp, noteId) {
+	$('#modif-'+opUser).remove();
+	clearTimeout(palsList[opUser].opTimeout);
+	
+	$('#pal-'+opUser).attr('title', dateToPrettyString()+ ' - ' +txtOp + ' #'+noteId);
+	$('#'+ noteId +' .modifiers').prepend('<span class="modifier" id="modif-'+opUser+'" style="color:'+palsList[opUser].color+';" title="'+opUser+' '+txtOp+'">●</span>');
+	
+	palsList[opUser].opTimeout = setTimeout(function(){ $('#modif-'+opUser).remove(); }, 3000);
+}
+
+function addNote(id, noteData, zIndex) {
 	// Creating the corresponding DOM:
 	var $notetext = $('<textarea>'+noteData.text+'</textarea>');
 	$notetext.val(noteData.text);
@@ -147,7 +182,7 @@ function addNote(id, noteData) {
 	var $noteDelBtn = $('<a class="deleteNote">&times;</a>');
 
 
-	var $newnote = $('<div class="note" id="'+ id +'"></div>');
+	var $newnote = $('<div class="note" id="'+ id +'" style="z-index:'+zIndex+';"><p class="modifiers"></p></div>');
 	$noteDelBtn.appendTo($newnote);
 	$notetext.appendTo($newnote);
 	$newnote.css({
@@ -162,6 +197,8 @@ function addNote(id, noteData) {
 		console.log('<Input> Local Operation Detected: Deletion of Note #'+ cId +'.');
 		jupiterClient.generate( {op: 'nDel', param: {id: cId}} ); // Generating the corresponding nDel operation.
 		$(this).parent().remove();
+		logPalsActivity(user, 'just deleted the note', cId);
+		jupiterClient.notesNum--;
 	});
 
 	$newnote.bind('drag', function (ev, dd) {
@@ -171,20 +208,24 @@ function addNote(id, noteData) {
 			'top': dd.offsetY,
 			'left': dd.offsetX
 		});
+		logPalsActivity(user, 'is dragging the note', $(this).attr('id'));
 	});
 
 	$newnote.bind('dragstart', function (ev, dd) {
 		$(this).addClass('drag');
+		updateNotesZIndex($(this).attr('id'), jupiterClient.notesNum);
 	});
 
 	$newnote.bind('dragend', function (ev, dd) {
 		$(this).removeClass('drag');
+		updateNotesZIndex($(this).attr('id'), jupiterClient.notesNum);
 	});
 
 	$notetext.input(function() {
 		var cId = $(this).parent().attr('id');
 		console.log('<Input> Local Operation Detected: Text Edit of Note #'+ cId +'.');
 		var newData = $(this).val();
+		updateNotesZIndex(cId, jupiterClient.notesNum);
 		
 		// Computing the differences (insertions / deletions) with the previous text:
 		var diffs = diffMatchPatchFunc.diff_main(jupiterClient.data[cId].text, newData);
@@ -209,25 +250,47 @@ function addNote(id, noteData) {
 					break;
 			}
 		}
+		logPalsActivity(user, 'is editing the content of the note', cId);
 	});
 
 	$newnote.appendTo($notesDiv);
 }
 
-function dateToString() {
+function dateToString(date) {
+		
+    	if (!date) date = new Date();
+    	return padStr2(date.getFullYear()) +
+		padStr2(1 + date.getMonth()) +
+		padStr2(date.getDate()) +
+		padStr2(date.getHours()) +
+		padStr2(date.getMinutes()) +
+		padStr2(date.getSeconds()) +
+		padStr3(date.getMilliseconds());
+}
+
+function dateToPrettyString() {
     	var temp = new Date();
-    	return padStr2(temp.getFullYear()) +
-		padStr2(1 + temp.getMonth()) +
-		padStr2(temp.getDate()) +
-		padStr2(temp.getHours()) +
-		padStr2(temp.getMinutes()) +
-		padStr2(temp.getSeconds()) +
-		padStr3(temp.getMilliseconds());
+    	return padStr2(temp.getFullYear()) + '/' +
+		padStr2(1 + temp.getMonth()) + '/' +
+		padStr2(temp.getDate()) + ' ' +
+		padStr2(temp.getHours()) + ':' +
+		padStr2(temp.getMinutes()) + ':' +
+		padStr2(temp.getSeconds());
+}
+
+function updateNotesZIndex(id, max) {
+	var currentZind = parseInt($('#'+id).css('z-index'));
+	$('.note').each(function() {
+		var nZind =  parseInt($(this).css('z-index'));
+		if (nZind > currentZind) { $(this).css('z-index', ''+(nZind-1)); }
+	});
+	$('#'+id).css('z-index', max);
 }
 
 function padStr2(i) {
     return (i < 10) ? "0" + i : "" + i;
 }
+
 function padStr3(i) {
     return (i < 10) ? "00" + i : (i < 100) ? "0" + i : i;
 }
@@ -245,6 +308,7 @@ function doGetCaretPosition (ctrl) {
 		CaretPos = ctrl.selectionStart;
 	return (CaretPos);
 }
+
 function setCaretPosition(ctrl, pos){
 	if(ctrl.setSelectionRange)
 	{
@@ -258,4 +322,13 @@ function setCaretPosition(ctrl, pos){
 		range.moveStart('character', pos);
 		range.select();
 	}
+}
+
+function randomColor(){
+//    var allowed = "0369cf".split( '' ), s = "#";
+//    while ( s.length < 4 ) {
+//       s += allowed.splice( Math.floor( ( Math.random() * allowed.length ) ), 1 );
+//    }
+//    return s;
+    return 'hsl('+Math.floor(Math.random()*360)+','+(20 + Math.floor(Math.random()*80))+'%,'+ (20 + Math.floor(Math.random()*60))+'%)';
 }
