@@ -152,8 +152,9 @@ footer a{
 	
 }
 
-.note-box { position: absolute; z-index: 1; padding:0; margin:0;}
 .note {
+	z-index: 1;
+	position: absolute; 
 	font-size: .8em;
 	color: #444;
 	cursor: move;
@@ -169,10 +170,51 @@ footer a{
 	box-shadow: 0 0 1px rgba(0,0,0,0.7);
 	transition: box-shadow .5s;
 	-webkit-transition: box-shadow .5s;
+	padding: 0;
+	margin: 0;
 }
+.insideNote {
+	margin: 0;
+	position: relative;
+	top: 8px;
+	background-color: #fefef5;
+	border-radius: 2px 2px 6px 2px;
+	border-bottom: 1px #eee solid;
+}
+.insideNote::after {
+	content: "";
+	position: absolute;
+	bottom: 10px;
+	left: 3%;
+	width: 95%;
+	height: 10%;
+	float: right;
+	z-index: -1;
+	-webkit-box-shadow: 0 10px 10px rgba(0,0,0,0.7);
+	-moz-box-shadow: 0 10px 10px rgba(0,0,0,0.7);
+	box-shadow: 0 10px 10px rgba(0,0,0,0.7);
+	-webkit-transform: rotate(2deg);
+	-moz-transform: rotate(2deg);
+	-ms-transform: rotate(2deg);
+	-o-transform: rotate(2deg);
+	transform: rotate(2deg);
+	transition: box-shadow .5s 1s;
+	-webkit-transition: box-shadow .3s .7s;
+	-webkit-filter: custom(url(cylindricalConeTransform.vs) /* Vertex-shader */
+		mix(url(cylindricalConeTransform.fs) normal source-atop /* Fragment-shader and color-mixing properties */),
+		36 2 /* Numbers of vertices */,
+		/* Passing the values to the shaders uniforms: */
+		amount 0,
+		cylinderRadius 0.35,
+		cylinderLength 250,
+		transform rotateY(0deg) rotateX(0deg));
+
+	-webkit-transition: -webkit-filter linear 1s; /* Transition on the filter for animation. */
+}
+
 .drag{
 	z-index: 99999;
-	box-shadow: 10px 10px 10px rgba(0,0,0,0.3);
+	box-shadow: 10px 10px 10px rgba(0,0,0,0.3), 0 0 1px rgba(0,0,0,0.7);
 	border-radius: 2px 2px 2px 2px;
 	transition: box-shadow .5s;
 	-webkit-transition: box-shadow .5s;
@@ -183,7 +225,7 @@ footer a{
 		cylinderLength 250,
 		transform rotateY(60deg) rotateX(60deg));
 }
-.drag::after{
+.drag .insideNote::after{
 	-webkit-box-shadow: none;
 	-moz-box-shadow: none;
 	box-shadow: none;
@@ -193,7 +235,7 @@ footer a{
 
 .note textarea {
 	resize: none;
-	margin-top: 7px;
+	margin-bottom: 7px;
 	width: 244px;
 	height: 244px;
 	background-color: #fffffa;
@@ -210,7 +252,7 @@ footer a{
 	position: absolute;
 	margin: 0;
 	padding: 0;
-	top: -20px;
+	top: -29px;
 	right: 0;
 }
 .modifiers {
@@ -220,7 +262,7 @@ footer a{
 	height: 12px;
 	margin: 0;
 	padding: 0;
-	top: -15px;
+	top: -22px;
 	text-align: left;
 	left: 5px;
 }
@@ -261,14 +303,14 @@ footer a{
 #logout {
 	position: relative;
 	top: -22px;
+	left: 1.3em;
 	margin: .3em;
-	padding: 0.2em;
+	padding: 0;
 	font-size: 2em;
 	font-weight: bold;
 	text-shadow: 0 -1px 1px rgb(0,0,0,.4);
 	color: #f24537;
 	border-radius: 999px;
-	margin-left: -.3em;
 }
 
 .modalDialog {
@@ -295,6 +337,12 @@ footer a{
 	background: -moz-linear-gradient(#fff, #999);
 	background: -webkit-linear-gradient(#fff, #999);
 	background: -o-linear-gradient(#fff, #999);
+}
+
+.modalDialog p {
+	text-size: 3em;
+	color: #eee;
+	margin-top: 3em;
 }
 
 h2 {

@@ -90,7 +90,7 @@ socket.on('connect', function () {
 					jupiterClient.notesNum++;
 				}
 				updateNotesZIndex(opMsg.msg.param.id, jupiterClient.notesNum);
-				var $textarea = $('#'+ opMsg.msg.param.id +' > textarea');
+				var $textarea = $('#'+ opMsg.msg.param.id +' .insideNote > textarea');
 				var currentCaretPos = doGetCaretPosition($textarea[0]);
 				$textarea.val(jupiterClient.data[opMsg.msg.param.id].text);
 				setCaretPosition($textarea[0], currentCaretPos);
@@ -152,8 +152,8 @@ socket.on('connect', function () {
 		
 		// Client is connected to the server and ready - let's enable the edition:
 		$('.header').append($btnAddNote);
-		$('.header').append($palsUl);
 		$('.header').append('<a id="logout" href="/logout" title="Log out">&times;</a>');
+		$('.header').append($palsUl);
 		$('#waitMsg').remove();
 		$('#jupiterDoc').append($notesDiv);
 		
@@ -176,15 +176,17 @@ function logPalsActivity(opUser, txtOp, noteId) {
 
 function addNote(id, noteData, zIndex) {
 	// Creating the corresponding DOM:
-	var $notetext = $('<textarea>'+noteData.text+'</textarea>');
+	var	$notetext = $('<textarea>'+noteData.text+'</textarea>'),
+		$noteDelBtn = $('<a class="deleteNote">&times;</a>'),
+		$newnote = $('<div class="note" id="'+ id +'" style="z-index:'+zIndex+';"></div>'),
+		$modifiers = $('<p class="modifiers"></p>'),
+		$insideNote = $('<div class="insideNote"></div>');
+	
 	$notetext.val(noteData.text);
-
-	var $noteDelBtn = $('<a class="deleteNote">&times;</a>');
-
-
-	var $newnote = $('<div class="note" id="'+ id +'" style="z-index:'+zIndex+';"><p class="modifiers"></p></div>');
-	$noteDelBtn.appendTo($newnote);
-	$notetext.appendTo($newnote);
+	$modifiers.appendTo($insideNote);
+	$noteDelBtn.appendTo($insideNote);
+	$notetext.appendTo($insideNote);
+	$insideNote.appendTo($newnote);
 	$newnote.css({
 		'position': 'absolute',
 		'top': noteData.y,
@@ -193,10 +195,10 @@ function addNote(id, noteData, zIndex) {
 
 	// Handling the events:
 	$noteDelBtn.click(function() {
-		var cId = $(this).parent().attr('id');
+		var cId = $(this).parent().parent().attr('id');
 		console.log('<Input> Local Operation Detected: Deletion of Note #'+ cId +'.');
 		jupiterClient.generate( {op: 'nDel', param: {id: cId}} ); // Generating the corresponding nDel operation.
-		$(this).parent().remove();
+		$(this).parent().parent().remove();
 		logPalsActivity(user, 'just deleted the note', cId);
 		jupiterClient.notesNum--;
 	});
@@ -222,7 +224,7 @@ function addNote(id, noteData, zIndex) {
 	});
 
 	$notetext.input(function() {
-		var cId = $(this).parent().attr('id');
+		var cId = $(this).parent().parent().attr('id');
 		console.log('<Input> Local Operation Detected: Text Edit of Note #'+ cId +'.');
 		var newData = $(this).val();
 		updateNotesZIndex(cId, jupiterClient.notesNum);
