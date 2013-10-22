@@ -40,40 +40,6 @@ var	services = require("./services")(mongoose, modelUser, modelOperation, modelN
 	authModule = require("./auth")(modelUser);
 
 /* ------------------------
- * REST Server config
- * ------------------------
- */
-var rest;
-if(sslActivated) {
-	rest = express({
-		key: fs.readFileSync('security/server.key'),
-		cert: fs.readFileSync('security/server.crt')
-	});
-} else {
-	rest = express();
-}
-rest.configure(function() {
-	rest.use(express.bodyParser()); // retrieves automatically req bodies
-	rest.use(rest.router); // manually defines the routes
-});
-
-// Service:
-serviceHandler = {};
-serviceHandler["/doc"] = services.rest.getLastSnapshot;
-serviceHandler["/createUser"] = services.rest.createUser;
-//serviceHandler["/xxx"] = services.xxx;
-
-for (var url in serviceHandler) {
-	rest.post(url, serviceHandler[url]);
-}
-
-logger.warn("REST routes activated.");
-var serverRest = http.createServer(rest);
-serverRest.listen(config.getProperty("rest.port"));
-logger.warn("REST server is listening.");
-
-
-/* ------------------------
  * HTML Server config
  * ------------------------
  */
@@ -127,6 +93,16 @@ for (var url in viewHandler) {
 	(securityActivated) ? html.get(url, authModule.checkAuth(url))
 						: html.get(url, viewHandler[url]);
 }
+
+
+
+// Service:
+serviceHandler = {};
+serviceHandler["/createUser"] = services.rest.createUser;
+for (var url in serviceHandler) {
+	html.post(url, serviceHandler[url]);
+}
+
 
 logger.warn("HTML Server routes activated.");
 var serverHtml = http.createServer(html);

@@ -10,7 +10,7 @@ rest += ':'+config.getProperty("rest.port");
  */
 function viewIndex(req, res) {
 	logger.debug("<View> Viewing index (User "+req.session.username+").");
-	res.render('index', {title: "Main", rest: rest, username: req.session.username});
+	res.render('index', {title: "Main", username: req.session.username});
 }
 
 /*
@@ -18,7 +18,7 @@ function viewIndex(req, res) {
  */
 function viewSignin(req, res) {
 	logger.debug("<View> Viewing signin.");
-	res.render('signin', {title: "Sign-In", rest: rest});
+	res.render('signin', {title: "Sign-In"});
 }
 
 
@@ -28,7 +28,7 @@ function viewSignin(req, res) {
 function viewLogin(req, res) {
 	next = req.param("next", null);
 	logger.info("<View> Viewing login page. Next is : " + next);
-	res.render('login', {title: "Login", rest: rest, next: next, error: null});
+	res.render('login', {title: "Login", next: next, error: null});
 }
 
 function dateToString(date) {
@@ -55,12 +55,12 @@ function twoDigits(nb) {
 
 function viewNotfound(req, res) {
 	logger.warn("<View> View not found : " + req.url);
-	res.render('404', {title: "Page non trouvée", rest: rest});
+	res.render('404', {title: "Page not found"});
 }
 
 function viewHelp(req, res) {
 	logger.info("<View> Viewing help page.");
-	res.render('help', {title: "Aide", rest: rest});
+	res.render('help', {title: "Help"});
 }
 
 exports.index = viewIndex;
