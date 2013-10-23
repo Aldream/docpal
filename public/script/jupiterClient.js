@@ -1,15 +1,29 @@
-$.fn.exists = function () { // Snippet to know if a Jquery selector returns something or not
+/**
+ * =================
+ * Script - JupiterClient
+ * 		by Benjamin (Bill) Planche / Aldream 
+ * =================
+ * Engine behind the Client's Jupiter API
+ */
+ 
+ $.fn.exists = function () { // Snippet to know if a Jquery selector returns something or not
     return this.length !== 0;
 }
 
+// ---------------------------
+// VAR INIT
+// ---------------------------
+
+// Socket.io Connection:
 var socket = io.connect();
+
+// We define the way to communicate for our Jupiter Node, ie through Socket.io:
 JupiterNode.prototype.send = function(msg) {
 	socket.emit('op', msg);
 	console.log('<WebSocket> Local Operation sent: { type: ' + msg.op +', param: '+ JSON.stringify(msg.param) +' }');
 };
 
 var	jupiterClient = new JupiterNode(/*TO DO: generate unique ID */ 0, ''),				// Jupiter Node
-	diffMatchPatchFunc = new diff_match_patch(),										// Text-diff Processor
 	otherclientsList = [],																// List of connected clients
 	palsList = [];																		// List of connected users (a user can run numerous client nodes)
 
@@ -18,7 +32,17 @@ palsList[user] = {clientsNum : 1, color: randomColor(), opTracker: null}; // Add
 var	$notesDiv = $('<div id="notes"></div>'),											// Container for the notes
 	$palsUl = $('<ul id="pals"><li class="you" id="pal-'+user+'" style="color:'+palsList[user].color+';" title="Nothing done since your connection">'+user+'</li></ul>');	// List of connected pals
 
-// TO DO: Improve zIndex update
+// Worker to deal with findind the Jupiter Operations to get a new text from an old one:
+var workerOperationsFromDiff = new Worker('script/worker_generateOperationsFromDiff.js');
+workerOperationsFromDiff.onmessage = function (oEvent) {
+	console.log('<Webworker> Message : '+ JSON.stringify(oEvent.data));
+	jupiterClient.generate(oEvent.data);
+};
+
+
+// ---------------------------
+// SOCKET.IO COMMUNICATION
+// ---------------------------
 
 socket.on('hi', function(palsInfo) { // When new clients join
 	for (var i = 0; i < palsInfo.length; i++) {
@@ -64,7 +88,7 @@ socket.on('bye', function(palInfo) { // When a client leaves
 
 });
 		
-socket.on('connect', function () {
+socket.on('connect', function () { // When this node is connected to the Jupiter System
 	console.log('<WebSocket> Connected.');
 
 	socket.on('data', function(data) { // When receiving a version of the shared doc:
@@ -75,15 +99,18 @@ socket.on('connect', function () {
 		socket.on('op', function(opMsg) { // When receiving an operation from the server:
 			var opUser = otherclientsList[opMsg.sender];
 			console.log('<WebSocket> Distant Operation received from '+opUser+'(# '+opMsg.sender+'): { type: ' + opMsg.msg.op +', param: '+ JSON.stringify(opMsg.msg.param) +' }');
+			
+			// Giving the operation to the Jupiter Node to synchronize:
 			opMsg.msg = jupiterClient.receive(opMsg.msg);
 			var txtOp = '';
+			
 			// Applying the operations to the GUI:
-			if (opMsg.msg.op == 'nAdd') {
+			if (opMsg.msg.op == 'nAdd') { // Creating a new note
 				jupiterClient.notesNum++;
 				addNote(opMsg.msg.param.id, opMsg.msg.param, jupiterClient.notesNum);
 				txtOp = 'just created the note';
 			}
-			else if (opMsg.msg.op == 'cIns' || opMsg.msg.op == 'cDel' || opMsg.msg.op == 'sIns' || opMsg.msg.op == 'sDel') {
+			else if (opMsg.msg.op == 'cIns' || opMsg.msg.op == 'cDel' || opMsg.msg.op == 'sIns' || opMsg.msg.op == 'sDel') { // Editing the content of a note
 				if (jupiterClient.data[opMsg.msg.param.id].state == 10) { // Must first restore the note
 					addNote(opMsg.msg.param.id, jupiterClient.data[opMsg.msg.param.id], jupiterClient.notesNum);
 					jupiterClient.data[opMsg.msg.param.id].state = 1;
@@ -96,7 +123,7 @@ socket.on('connect', function () {
 				setCaretPosition($textarea[0], currentCaretPos);
 				txtOp = 'is editing the content of the note';
 			}
-			else if (opMsg.msg.op == 'nDrag') {
+			else if (opMsg.msg.op == 'nDrag') { // Moving a note
 				if (jupiterClient.data[opMsg.msg.param.id].state == 20) { // Must first restore the note
 					addNote(opMsg.msg.param.id, jupiterClient.data[opMsg.msg.param.id], jupiterClient.notesNum);
 					jupiterClient.data[opMsg.msg.param.id].state = 2;
@@ -109,19 +136,21 @@ socket.on('connect', function () {
 				});
 				txtOp = 'is dragging the note';
 			}
-			else if (opMsg.msg.op == 'nDel') {
+			else if (opMsg.msg.op == 'nDel') { // Deleting a note
 				$('#'+ opMsg.msg.param.id).remove();
 				txtOp = 'just deleted the note';
 				jupiterClient.notesNum--;
 			}
 			
 			if (opMsg.msg.param.id) {
-				logPalsActivity(opUser, txtOp, opMsg.msg.param.id);
+				logPalsActivity(opUser, txtOp, opMsg.msg.param.id); // Creating a small dot in the corner of the modified note to show that a distant user is playing with it.
 			}
 			console.log('<Update> Distant Operation #' + jupiterClient.otherMessages + ' applied: { type: ' + opMsg.msg.op +', param: '+ JSON.stringify(opMsg.msg.param) +' }');
 		});
 
+		// Feeding this Node with the initial data from the Jupiter Server:
 		jupiterClient.data = data.data;
+		// Small hack to add the notes in the chronological order of their last operation on, to stack them (zIndex) in the correct order:
 		var lastOpTimeArray = [];
 		for (var id in jupiterClient.data) {
 			lastOpTimeArray.push({id: id, t: jupiterClient.data[id].timestampLastOp});
@@ -135,6 +164,7 @@ socket.on('connect', function () {
 		}
 		jupiterClient.notesNum = lastOpTimeArray.length;
 
+		// The Node is ready. Display the edition interface:
 		var $btnAddNote = $('<button id="addNote" title="Create a note">+</button>');
 		$btnAddNote.click(function(){
 			console.log('<Input> Local Operation Detected: Creation of a new Note.');
@@ -164,6 +194,16 @@ socket.on('connect', function () {
 	
 });
 
+/**
+ * logPalsActivity
+ * ====
+ * Display a small dot in the corner of a modified note. The dot has the color of the modifier.
+ * Parameters:
+ *	- opUser (string):	Name of the user who generated the operation
+ *	- txtOp (string):	Text defining the operation, to display when overing the dot
+ *	- noteId (string):	ID of the modified note
+ * Output: /
+ */
 function logPalsActivity(opUser, txtOp, noteId) {
 	$('#modif-'+opUser).remove();
 	clearTimeout(palsList[opUser].opTimeout);
@@ -174,6 +214,22 @@ function logPalsActivity(opUser, txtOp, noteId) {
 	palsList[opUser].opTimeout = setTimeout(function(){ $('#modif-'+opUser).remove(); }, 3000);
 }
 
+
+
+// ---------------------------
+// GUI Functions
+// ---------------------------
+
+/**
+ * addNote
+ * ====
+ * Display a new note.
+ * Parameters:
+ *	- id (string):			ID of the new note
+ *	- noteData (JSON Obj):	Data of the new note
+ *	- zIndex (int):			z-Index of the note
+ * Output: /
+ */
 function addNote(id, noteData, zIndex) {
 	// Creating the corresponding DOM:
 	var	$notetext = $('<textarea>'+noteData.text+'</textarea>'),
@@ -226,60 +282,24 @@ function addNote(id, noteData, zIndex) {
 	$notetext.input(function() {
 		var cId = $(this).parent().parent().attr('id');
 		console.log('<Input> Local Operation Detected: Text Edit of Note #'+ cId +'.');
-		var newData = $(this).val();
 		updateNotesZIndex(cId, jupiterClient.notesNum);
+		workerOperationsFromDiff.postMessage({newTxt: $(this).val(), oldTxt: jupiterClient.data[cId].text, id: cId});
 		
-		// Computing the differences (insertions / deletions) with the previous text:
-		var diffs = diffMatchPatchFunc.diff_main(jupiterClient.data[cId].text, newData);
-		var currentPosition = 0;
-		for (var x = 0; x < diffs.length; x++) {
-			var op = diffs[x][0]; // Operation (insert, delete, equal)
-			var data = diffs[x][1]; // Text of change.
-			//var text = data.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '&para;<BR>');
-			switch (op) {
-				case DIFF_INSERT:
-					jupiterClient.generate( {op: 'sIns', param: {id: cId, pos: currentPosition, str: data, size: data.length}} ); // Generating the corresponding sIns operation.
-					currentPosition += data.length; // Moving carret of the size of the string.
-
-					break;
-				case DIFF_DELETE:
-					jupiterClient.generate( {op: 'sDel', param: {id: cId, pos: currentPosition, size: data.length}} ); // Generating the corresponding sDel operation.
-					break;
-				case DIFF_EQUAL:
-					// We move the carret of data.length:
-					currentPosition += data.length;
-					// Do nothing
-					break;
-			}
-		}
 		logPalsActivity(user, 'is editing the content of the note', cId);
 	});
 
 	$newnote.appendTo($notesDiv);
 }
 
-function dateToString(date) {
-		
-    	if (!date) date = new Date();
-    	return padStr2(date.getFullYear()) +
-		padStr2(1 + date.getMonth()) +
-		padStr2(date.getDate()) +
-		padStr2(date.getHours()) +
-		padStr2(date.getMinutes()) +
-		padStr2(date.getSeconds()) +
-		padStr3(date.getMilliseconds());
-}
-
-function dateToPrettyString() {
-    	var temp = new Date();
-    	return padStr2(temp.getFullYear()) + '/' +
-		padStr2(1 + temp.getMonth()) + '/' +
-		padStr2(temp.getDate()) + ' ' +
-		padStr2(temp.getHours()) + ':' +
-		padStr2(temp.getMinutes()) + ':' +
-		padStr2(temp.getSeconds());
-}
-
+/**
+ * updateNotesZIndex
+ * ====
+ * Modify the z-index of a given note so it gets on top, and decrement the z-index of all notes previously on top of it.
+ * Parameters:
+ *	- id (string):			ID of the note
+ *	- max (int):			New max z-index
+ * Output: /
+ */
 function updateNotesZIndex(id, max) {
 	var currentZind = parseInt($('#'+id).css('z-index'));
 	$('.note').each(function() {
@@ -289,14 +309,14 @@ function updateNotesZIndex(id, max) {
 	$('#'+id).css('z-index', max);
 }
 
-function padStr2(i) {
-    return (i < 10) ? "0" + i : "" + i;
-}
-
-function padStr3(i) {
-    return (i < 10) ? "00" + i : (i < 100) ? "0" + i : i;
-}
-
+/**
+ * doGetCaretPosition
+ * ====
+ * Returns the position of the caret in an text element
+ * Parameters:
+ *	- ctrl (DOM El):		DOM element
+ * Output: Int
+ */
 function doGetCaretPosition (ctrl) {
 	var CaretPos = 0;	// IE Support
 	if (document.selection && navigator.appVersion.indexOf("MSIE 10") == -1) {
@@ -311,6 +331,15 @@ function doGetCaretPosition (ctrl) {
 	return (CaretPos);
 }
 
+/**
+ * setCaretPosition
+ * ====
+ * Edits the position of the caret in an text element
+ * Parameters:
+ *	- ctrl (DOM El):		DOM element
+ *	- pos (int):			New position
+ * Output: /
+ */
 function setCaretPosition(ctrl, pos){
 	if(ctrl.setSelectionRange)
 	{
@@ -326,11 +355,59 @@ function setCaretPosition(ctrl, pos){
 	}
 }
 
+
+// ---------------------------
+// UTILITY Functions
+// ---------------------------
+
+
+/**
+ * dateToString
+ * ====
+ * Returns a unique string for a given date
+ * Parameters:
+ *	- date (Date):			Date
+ * Output: String
+ */
+function dateToString(date) {
+		
+    	if (!date) date = new Date();
+    	return padStr2(date.getFullYear()) +
+		padStr2(1 + date.getMonth()) +
+		padStr2(date.getDate()) +
+		padStr2(date.getHours()) +
+		padStr2(date.getMinutes()) +
+		padStr2(date.getSeconds()) +
+		padStr3(date.getMilliseconds());
+}
+
+/**
+ * dateToPrettyString
+ * ====
+ * Returns a readable string for a given date
+ * Parameters:
+ *	- temp (Date):			Date
+ * Output: String
+ */
+function dateToPrettyString(temp) {
+		
+    	if (!temp) temp = new Date();
+    	return padStr2(temp.getFullYear()) + '/' +
+		padStr2(1 + temp.getMonth()) + '/' +
+		padStr2(temp.getDate()) + ' ' +
+		padStr2(temp.getHours()) + ':' +
+		padStr2(temp.getMinutes()) + ':' +
+		padStr2(temp.getSeconds());
+}
+
+function padStr2(i) {
+    return (i < 10) ? "0" + i : "" + i;
+}
+
+function padStr3(i) {
+    return (i < 10) ? "00" + i : (i < 100) ? "0" + i : i;
+}
+
 function randomColor(){
-//    var allowed = "0369cf".split( '' ), s = "#";
-//    while ( s.length < 4 ) {
-//       s += allowed.splice( Math.floor( ( Math.random() * allowed.length ) ), 1 );
-//    }
-//    return s;
     return 'hsl('+Math.floor(Math.random()*360)+','+(20 + Math.floor(Math.random()*80))+'%,'+ (20 + Math.floor(Math.random()*60))+'%)';
 }
