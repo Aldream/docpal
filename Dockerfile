@@ -19,6 +19,10 @@ ENTRYPOINT ["usr/bin/mongod"]
 
 RUN apt-get install -y python-software-properties python python-setuptools ruby rubygems
 RUN add-apt-repository ppa:chris-lea/node.js
+
+# Fixing broken dependencies ("nodejs : Depends: rlwrap but it is not installable"):
+RUN echo "deb http://archive.ubuntu.com/ubuntu precise universe" >> /etc/apt/sources.list
+
 RUN echo "deb http://us.archive.ubuntu.com/ubuntu/ precise universe" >> /etc/apt/sources.list
 RUN apt-get update
 RUN apt-get install -y nodejs 
