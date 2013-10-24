@@ -15,7 +15,7 @@ var config = {
 		"port" : 8080
 	},
 	"db": {
-		"uri" :	'mongodb://guest@130.240.233.85:49156/docpal'
+		"uri" :	'mongodb://guest@130.240.233.85:49162/docpal'
 	},
 	"session" : {
 		"secret" : "One does not simply walk into this website."
