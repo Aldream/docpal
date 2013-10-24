@@ -30,7 +30,7 @@ onmessage = function (oEvent) {
 
 				break;
 			case DIFF_DELETE:
-				postMessage( {op: "sDel", param: {id: cId, pos: currentPosition, size: data.length}} ); // Generating the corresponding sDel operation.
+				postMessage( {op: "sDel", param: {id: oEvent.data.id, pos: currentPosition, size: data.length}} ); // Generating the corresponding sDel operation.
 				break;
 			case DIFF_EQUAL:
 				// We move the carret of data.length:
