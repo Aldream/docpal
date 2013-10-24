@@ -12,8 +12,7 @@ RUN apt-get update
 RUN apt-get install mongodb-10gen
 # Create the MongoDB data directory
 RUN mkdir -p /data/db
-EXPOSE 27017
-ENTRYPOINT ["usr/bin/mongod"]
+
 
 # --- Installing Node.js
 
@@ -33,6 +32,16 @@ RUN apt-get autoremove -y
 
 # Clear package repository cache
 RUN apt-get clean all
+
+# --- Installing Supervisord
+RUN easy_install supervisor
+RUN echo_supervisord_conf > /etc/supervisord.conf
+RUN printf "[include]\nfiles = /var/www/Supervisorfile\n" >> /etc/supervisord.conf
+
+# --- Bundle app source
+ADD . /var/www
+RUN cd /var/www ; npm install
+CMD ["/usr/local/bin/supervisord", "-n", "-c", "/etc/supervisord.conf"] 
 
 # --- Bundle app source
 ADD . /src
