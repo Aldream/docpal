@@ -5,7 +5,7 @@ autostart=true
 autorestart=true
 
 [program:node]
-command=/usr/bin/node /var/www/app.js
+command=/usr/bin/node /var/www/start.js
 numprocs=1
 directory=/var/www/
 autostart=true
