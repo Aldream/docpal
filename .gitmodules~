@@ -1,3 +1,0 @@
-[submodule "public/script/lib/jquery-input"]
-	path = public/script/lib/jquery-input
-	url = git://github.com/Thibaut/jquery-input.git
