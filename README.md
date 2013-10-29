@@ -5,6 +5,8 @@ notepal
 
 For the documentation or the project monitoring documents, take a look at the [Wiki](https://github.com/Aldream/notepal/wiki) or [Github Pages](http://aldream.io/notepal).
 
+### Branches
+Mind the various branches of this project (branch containing deploy scripts, branch containing the *vagrant* dev environment, ...).
 
 ### Folder Details
 
