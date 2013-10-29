@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Notepal : Jupiter System - Collaborative Editing - Applied to Sticky Notes" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Notepal</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/Aldream/notepal">View on GitHub</a>
+
+          <h1 id="project_title"><a href="index.html" style="color:#fff;">Notepal</a></h1>
+          <h2 id="project_tagline">Jupiter System - Collaborative Editing - Applied to Sticky Notes</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/Aldream/notepal/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/Aldream/notepal/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+		  
+<h3 id="nodesarchitecture">Nodes Architecture</h3>
+
+<p>Jupiter implements a centralized architecture, with each client node communicating with the main server. This server has for purpose to centralize the actions, coordinate the clients and ensure the consistency.</p>
+
+<p>To the server, each client appears to be operating synchronously with respect to the server’s actions. The server can thus use a simple change propagation algorithm to keep all the clients updated and in sync.</p>
+
+<p><img src="https://raw.github.com/Aldream/notepal/gh-pages/images/architecture.png" alt="Jupiter Architecture" title="" /></p>
+
+<blockquote>
+  <p>Note: it is possible to merge the HTML and the REST server by editing the config file, for instance when there is only one port available.</p>
+</blockquote>
+
+<p>We this differentiate two kind of nodes in this architecture:
+- the <em>Master</em> node, ie. the central server/coordinator
+- the multiple <em>Client</em> nodes, which are running the edition application</p>
+
+<h3 id="consistencyalgorithm">Consistency Algorithm</h3>
+
+<p>Jupiter consistency algorithm is based on the <em>optimistic concurrency control</em> heuristic, which requires no communication with the coordinator before applying changes locally. Those changes are applied immediately, while the other parties of the action are getting informed.</p>
+
+<p>If more than one participant makes a change at the same time, a conﬂict resolution algorithm is applied. This algorithm transforms the local operations to non-conflicting ones, so that every party can move to the same final state.</p>
+
+<p>These transformations are assured by the function <em>xform</em>, which takes as parameters the local (and thus already applied) operation O<small>l</small> and the incoming one O<small>i</small>, and returns the 2 transformed operations O<small>l</small>' and O<small>i</small>'. The party thus only have to apply O<small>i</small>' to reach the consistent and final state.</p>
+
+<p>The transformations applied by <em>xform</em> over the operations are defined for each couple of potential conflicting operations. (see <a href="https://github.com/Aldream/docpal/wiki/Operations-&amp;-Transformation-Rules">Operations &amp; Transformation Rules</a>).</p>
+
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Notepal maintained by <a href="https://github.com/Aldream">Aldream</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
