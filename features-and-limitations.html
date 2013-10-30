@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Notepal : Jupiter System - Collaborative Editing - Applied to Sticky Notes" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Notepal - Features & Limitations</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/Aldream/notepal">View on GitHub</a>
+
+          <h1 id="project_title"><a href="index.html" style="color:#fff;">Notepal</a></h1>
+          <h2 id="project_tagline">Jupiter System - Collaborative Editing - Applied to Sticky Notes</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/Aldream/notepal/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/Aldream/notepal/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+<h2 id="features">Features</h2>
+
+<h3 id="featuresofourjupitersystem">Features of our Jupiter System</h3>
+<p>List of the global features of our implementation:</p>
+
+<ul>
+<li><strong>Jupiter Server using Node + Socket.io</strong>
+<ul><li>Easily scalable main server using Socket.io to dynamically communicate with the clients.</li></ul></li>
+<li><strong>Jupiter Client using HTML + JS</strong>
+<ul><li>Client interfaces with an engine able to generate and receive operations, only using the last web standards.</li></ul></li>
+<li><strong>Real-Time Synchronization of the Server and all the Clients</strong>
+<ul><li>Based on the lightweight communication protocol</li></ul></li>
+<li><strong>Handling of any kind of collisions</strong>
+<ul><li>Thanks to the implementation of the <code>xform</code> method and to the closure of the set of operations under this method, every potential kind of collision is covered. (see <a href="https://github.com/Aldream/docpal/wiki/Operations-&amp;-Transformation-Rules">Operations &amp; Transformation Rules</a>)</li></ul></li>
+<li><strong>MVC Structure</strong>
+<ul><li>Using <em>Express</em> server-side and <em>HTML5 Boilerplate</em> client-side, a clear architecture has been chosen.</li></ul></li>
+<li><strong>Protection of the content behind sessions (only authorized users can access)</strong>
+<ul><li>The main Web pages and the Websockets are both protected by sessions.</li></ul></li>
+<li><strong>Persistence using MongoDB</strong>
+<ul><li>To continue with the new hype techno, this noSQL DB has been chosen to persist the state of the Jupiter System (Users, Notes, Operations).</li></ul></li>
+<li><strong>Post-Crash Recovery</strong>
+<ul><li>Thanks to the persistence, the server can crash/stop, and then restart in the same state as previously.</li></ul></li>
+<li><strong>1 User, n Clients</strong>
+<ul><li>A User is identified by a <em>username</em> and a <em>password</em>, and can run simultaneously several client nodes without interferences.</li></ul></li>
+<li><strong>Awareness of other Users and their activity</strong>
+<ul><li>Each User can see which other User was responsible for a given operation.</li></ul></li>
+<li><strong>Logs</strong>
+<ul><li>Logs are kept server-side (detailed stuff is also printed in the client-side console).</li></ul></li>
+<li><strong>REST API</strong>
+<ul><li>Next to the HTML/WebSocket server, a REST server can be lauched, with some basic CRUD services.</li></ul></li>
+<li><strong>Web Workers</strong>
+<ul><li>For heavy client-side instructions, Web-workers are used, to make full use of the new power of JS.</li></ul></li>
+</ul>
+
+<h3 id="featuresofourdemonotepal">Features of our demo <em>notepal</em></h3>
+
+<p>List of some features specific for our small demo:</p>
+
+<ul>
+<li><strong>Users Profile</strong>
+<ul><li>Creation + Authentification for unique Users</li>
+<li>Passwords are strongly encrypted (<em>bcrypt</em>)</li></ul></li>
+<li>Jupiter Operations to manipulate <strong><em>sticky notes</em></strong>, ie possibility to:
+<ul><li><strong>Add notes</strong></li>
+<li><strong>Delete notes</strong></li>
+<li><strong>Edit the content of the notes</strong></li>
+<li><strong>Drag'n drop the notes</strong></li></ul></li>
+<li><strong>Inteligent Notes Stacking</strong>
+<ul><li>Notes are stacked from the last one updated to the most recent</li></ul></li>
+<li><strong><em>Who's doing what?</em></strong>
+<ul><li>Updated list of Users and their number of clients visible on the GUI</li>
+<li>Last and current activity of each client visible on the GUI (small colored dot in the corner of the currently edited note)</li></ul></li>
+<li><strong>CSS3+HTML5 <em>prettyfication</em></strong>
+<ul><li>Just to continue playing with hype stuff.</li></ul></li>
+</ul>
+<h2 id="limitations">Limitations</h2>
+
+<ul>
+<li><strong>Security</strong>
+<ul><li>No HTTPS yet
+<ul><li><em>Solution</em>: SSL protection has been implemented but not activated yet, a conform certificate must be created first.</li></ul></li>
+<li>No condition on the users passwords
+<ul><li><em>Solution</em>: Improve the form</li></ul></li></ul></li>
+<li><strong>Reliability</strong>
+<ul><li>If the server crashes for any reason, the current and following users operations won't be taken into account.
+<ul><li><em>Solution</em>: Implement a system of acknowledgments for the Jupiter communications, to avoid losing messages</li></ul></li>
+<li>If a client loses its connection, it will also lose its synchronization (its operation won't be taken into account)
+<ul><li><em>Solution</em>: see above (store all non-acknowledged messages and send them once the connection restaured)</li></ul></li></ul></li>
+<li><strong>REST API</strong>
+<ul><li>Not protected yet
+<ul><li><em>Solution</em>: The current implementation was just a demo. Protecting private methods behing sessions wouldn't be complicated.</li></ul></li>
+<li>Not complete
+<ul><li><em>Solution</em>: The current implementation was just a demo. Adding more useful features (retrieve notes as files, administrate the system, ...) will be done in time.</li></ul></li></ul></li>
+<li><strong>Text Edition Handling</strong>
+<ul><li>Currently, the Google's library <em>diff-match-patch</em> is used to find differences between the previous content of a note and the new one, after an input has been noticed. However, it is a heavy solution (though processed by Web-workers), and a better method can probably be found.
+<ul><li><em>Solution</em>: Watch for any kind of events (keyboard, mouse, ...) and cover all the potential cases?</li></ul></li></ul></li>
+</ul>
+
+<h2 id="possibilitiesforimprovements">Possibilities for improvements</h2>
+
+<p>See above.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Notepal maintained by <a href="https://github.com/Aldream">Aldream</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
