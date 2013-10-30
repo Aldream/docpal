@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Notepal : Jupiter System - Collaborative Editing - Applied to Sticky Notes" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Notepal - Workflow</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/Aldream/notepal">View on GitHub</a>
+
+          <h1 id="project_title"><a href="index.html" style="color:#fff;">Notepal</a></h1>
+          <h2 id="project_tagline">Jupiter System - Collaborative Editing - Applied to Sticky Notes</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/Aldream/notepal/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/Aldream/notepal/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+<p>This page explains how to work as a team without fighting each other and with a minimum of QA...</p>
+
+<h3 id="branches">Branches</h3>
+
+<p>On Github, the <em>master</em> branch contains the last stable version of the project, ie which is working for all the modules.</p>
+
+<ul>
+<li>For each backlog task (bug solving, implementation of a new functionality,...), create a new branch with an explicit name (ex: "bugfix-issue17" or "impl-HTTPS").</li>
+<li>For the pull requests (PR), see the following section.</li>
+</ul>
+
+<p>In runtime, we should stay on <em>master</em>:</p>
+
+<ul>
+<li>When a PR is accepted, we try to switch as fast as possible to the runtime environment to check if the new version is working with it (there should be no problem if everything is set correctly...)</li>
+<li>If everything is then OK, we merge from the new branch to <em>master</em> on Github, we switch back to <em>master</em> with the runtime environment, and we pull the modifications to it.</li>
+</ul>
+
+<h3 id="pullingarequest">Pulling a Request</h3>
+
+<ol>
+<li>Clone from Github to your local machine.</li>
+<li>Do whatever is needed and commit with an explicit message. Push only on your copy of the repository.</li>
+<li>Test locally, with the runtime version.</li>
+<li>If it doesn't work, back to 2.</li>
+<li>If enough interesting modifications has been done, launch a pull request.
+The PR must:
+<ul><li>have an explicit title (ex: not "fix old style" but "Tecursive protection - bug utf8 fixed" etc.)</li>
+<li>reference all the issues it solves</li>
+<li>precise that the local tests are OK, or it will be reverted.</li></ul></li>
+<li>The discussion is then open, so the other developers can check the code, the documentation, the correctness, how it is working on the production environment,...</li>
+<li>If at least one developer has checked all this, she/he can do the merging. No auto-merge (why using PR then?)</li>
+<li>Enjoy :)</li>
+</ol>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Notepal maintained by <a href="https://github.com/Aldream">Aldream</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
