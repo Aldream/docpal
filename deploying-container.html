@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Notepal : Jupiter System - Collaborative Editing - Applied to Sticky Notes" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Notepal - Deploying a container</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/Aldream/notepal">View on GitHub</a>
+
+          <h1 id="project_title"><a href="index.html" style="color:#fff;">Notepal</a></h1>
+          <h2 id="project_tagline">Jupiter System - Collaborative Editing - Applied to Sticky Notes</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/Aldream/notepal/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/Aldream/notepal/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+<p>This article deals with how to use Docker to easily deploy our nodeJS application on another machine.</p>
+
+<h3 id="creatinganimage">Creating an image</h3>
+
+<p>Once you are done coding, go to the root of your folder. It should contain a Dockerfile. Don't forget to add what is necessary if you have modified the contents (by using additional modules for example).</p>
+
+<p>Open a terminal where the Dockerfile is located then type :
+<code>$ sudo docker build -t [username]/docpal .</code></p>
+
+<p>Once the operations are completed, check if this newly created image is present in your image list :
+<code>sudo docker images</code></p>
+
+<p><img src="https://raw.github.com/Aldream/notepal/wiki/images/docker_images.png" alt="docker images" title="" /></p>
+
+<h3 id="uploadingtheimage">Uploading the image</h3>
+
+<p>First,you need to create an account on Docker.io <a href="https://index.docker.io/account/signup/">here</a>. Now, login :
+<code>sudo docker login</code></p>
+
+<p>Once you are authenticated, if you want to transfer the state of a running container to your image, you need to commit a container to an image :
+<code>sudo docker commit [containerID] [username]/docpal</code>
+Otherwise, you can skip this step. Be careful : if your container has already started the server and if you commit this state to an image, it will be useless as when running a container from this commited image, the server is supposed to have been started, which isn't necessarily the case.</p>
+
+<p>Then push the image to its repository :
+<code>sudo docker push [username]/docpal</code></p>
+
+<p>Make sure that your image has been uploaded. If you type :
+<code>sudo docker search [username]/docpal</code>, you should be able to see it. Otherwise, do the provious steps again.</p>
+
+<h3 id="deployingacontainer">Deploying a container</h3>
+
+<p>Once you are connected via SSH to your remote virtual machine (see <a href="https://github.com/Aldream/notepal/wiki/Using-Openstack">here</a> ), type : 
+<code>sudo docker pull polo417/docpal</code></p>
+
+<p>Then make sure the image is present in your image list :
+<code>$ sudo docker images</code></p>
+
+<p>If so, just run it :
+<code>$ sudo docker run [username]/docpal</code></p>
+
+<p>Check if your container  is running and remember its ID:
+<code>$ sudo docker ps</code>
+And have a look at the field "Ports". "Port2"->"Port1" means that the original port "Port1" was mapped to "Port2" in the container.</p>
+
+<p><img src="https://raw.github.com/Aldream/notepal/wiki/images/docker_ps.png" alt="docker ps" title="" /></p>
+
+<p>To see the output of the application and see if no error occurred :
+<code>$ sudo docker logs [containerID]</code></p>
+
+<p>Now call your application using curl (type <code>$ yum install curl</code> if necessary) :
+<code>$ curl -i localhost:[Port2]</code></p>
+
+<p>Congratulations ! Your application should be running and you should be able to access it via a web browser by typting : <code>[Floating IP address]:[Port2]</code>.</p>
+
+<p>NB : don't forget to allow Port2 on Openstack !</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Notepal maintained by <a href="https://github.com/Aldream">Aldream</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
