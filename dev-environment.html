@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Notepal : Jupiter System - Collaborative Editing - Applied to Sticky Notes" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Notepal - Installing & Using the Dev Environment</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/Aldream/notepal">View on GitHub</a>
+
+          <h1 id="project_title"><a href="index.html" style="color:#fff;">Notepal</a></h1>
+          <h2 id="project_tagline">Jupiter System - Collaborative Editing - Applied to Sticky Notes</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/Aldream/notepal/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/Aldream/notepal/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+<p>This page is to show you how to install the development environment needed on <strong>Windows 7</strong>. We will use a virtual machine running Ubuntu with all needed components installed. To do this, we will use <strong>Vagrant</strong>, which will also need <strong>VirtualBox</strong> to work.</p>
+
+<h2 id="requirements">Requirements</h2>
+
+<p>First, we need these following tools :</p>
+
+<ul>
+<li><span><a href="http://download.virtualbox.org/virtualbox/4.2.18/VirtualBox-4.2.18-88781-Win.exe">Virtualbox</a></span></li>
+<li><span><a href="http://git-scm.com/download/win">an SSH access program</a></span></li>
+<li><span><a href="http://files.vagrantup.com/packages/db8e7a9c79b23264da129f55cf8569167fc22415/Vagrant_1.3.3.msi">Vagrant</a></span></li>
+</ul>
+
+<h2 id="modifyingthepath">Modifying the path</h2>
+
+<p>This paragraph will show you how to change your path to access your virtual machine via <strong>SSH</strong>. Here, we will consider that we are using Git, but the principle remains the same if you use another equivalent program.</p>
+
+<ol>
+<li><span>Go to your Desktop and right-click <em>My Computer</em> then click <em>Properties</em>.</span></li>
+<li><span>Enter the advanced parameters tab and click Environment Variables</span></li>
+<li><span>Edit the Path variable, add a ";" after the last variable (if not already done) then add the path to ssh.exe
+(for example : <em>C:\Program Files (x86)\Git\bin\ssh.exe</em>)</span></li>
+<li><span>Press <em>OK</em>.</span></li>
+</ol>
+
+<h2 id="installingthedevelopmentenvironment">Installing the development environment</h2>
+
+<ol>
+<li><span>Download the configuration files by decompressing <a href="https://github.com/Aldream/notepal/blob/notepal_vagrant/vagrant/Vagrant_32.tar.gz?raw=true">this archive if you want to use the 32-bits version</a> or <a href="https://github.com/Aldream/notepal/blob/notepal_vagrant/vagrant/Vagrant_64.tar.gz?raw=true">this one if you want to use the 64-bits version</a> on your computer : </span></li>
+<li><span>Start a <strong>terminal</strong> (for example, you can press Windows button, type <em>cmd</em> then press ENTER).</span></li>
+<li><span>Using your terminal, enter the folder <em>Vagrant32</em> (or <em>Vagrant64</em> )previously extracted. You should see a Vagrantfile if you enter : <code>$ dir</code>.</span></li>
+<li><span>Use the command : <code>$ vagrant init precise32 http://files.vagrantup.com/precise32.box</code>(or <code>$ vagrant init precise64 http://files.vagrantup.com/precise64.box</code>).
+This should take a while but enables you to download essential files to have your virtual machine work.</span></li>
+</ol>
+
+<p>Once the download is over, we need to start the virtual machine : <code>$ vagrant up</code>. 
+Now, you have a fully-working virtual machine with no graphical interface or needed softwares. Ths can be solved by typing : <code>$ vagrant provision</code>.</p>
+
+<p>This should automatically install all needed modules and softwares needed to develop the project. Once it is done, you can shut down the virtual machine by entering : <code>$ vagrant halt</code>.</p>
+
+<h2 id="usingthevirtualenvironment">Using the virtual environment</h2>
+
+<p>Now that the virtual machine you need to develop is installed, you will may want to use it. You have two choices :</p>
+
+<h3 id="nographicalinterface">No graphical interface</h3>
+
+<p>If you don't want to use the graphical interface, you can :</p>
+
+<ol>
+<li>use your Windows terminal to enter dvpmt_env</li>
+<li>type : $ <code>vagrant up</code>.</li>
+</ol>
+
+<p>This will start your virtual machine. Then you can access it by entering : <code>$ vagrant ssh</code>.
+Hit CTRL + C when you are done to exit the development environment. You can shut down the machine by typing : <code>$ vagrant halt</code>.</p>
+
+<h3 id="withagraphicalinterface">With a graphical interface</h3>
+
+<p>Sometimes, to code or try the implemented functionalities, you may want to use a graphical interface. To do so :</p>
+
+<ol>
+<li>Start <strong>VirtualBox</strong> and then run the machine called <em>precise32</em></li>
+<li>The password is vagrant (your keyboard is configured as qwerty)</li>
+</ol>
+
+
+<h2 id="destroyingthedevelopementenvironment">Destroying the developement environment</h2>
+
+<p>If don't need the development environment anymore or if an incident occured with important system files, you can destroy it by entering dvpmt by using the command : <code>$ vagrant destroy</code>.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Notepal maintained by <a href="https://github.com/Aldream">Aldream</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
