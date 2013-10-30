@@ -41,29 +41,29 @@
 <code>$ sudo docker build -t [username]/docpal .</code></p>
 
 <p>Once the operations are completed, check if this newly created image is present in your image list :
-<code>sudo docker images</code></p>
+<code>$ sudo docker images</code></p>
 
-<p><img src="https://raw.github.com/Aldream/notepal/wiki/images/docker_images.png" alt="docker images" title="" /></p>
+<p><img src="https://raw.github.com/Aldream/notepal/gh-pages/images/docker_images.png" alt="docker images" title="" /></p>
 
 <h3 id="uploadingtheimage">Uploading the image</h3>
 
 <p>First,you need to create an account on Docker.io <a href="https://index.docker.io/account/signup/">here</a>. Now, login :
-<code>sudo docker login</code></p>
+<code>$ sudo docker login</code></p>
 
 <p>Once you are authenticated, if you want to transfer the state of a running container to your image, you need to commit a container to an image :
-<code>sudo docker commit [containerID] [username]/docpal</code>
+<code>$ sudo docker commit [containerID] [username]/docpal</code>
 Otherwise, you can skip this step. Be careful : if your container has already started the server and if you commit this state to an image, it will be useless as when running a container from this commited image, the server is supposed to have been started, which isn't necessarily the case.</p>
 
 <p>Then push the image to its repository :
-<code>sudo docker push [username]/docpal</code></p>
+<code>$ sudo docker push [username]/docpal</code></p>
 
 <p>Make sure that your image has been uploaded. If you type :
-<code>sudo docker search [username]/docpal</code>, you should be able to see it. Otherwise, do the provious steps again.</p>
+<code>$ sudo docker search [username]/docpal</code>, you should be able to see it. Otherwise, do the provious steps again.</p>
 
 <h3 id="deployingacontainer">Deploying a container</h3>
 
 <p>Once you are connected via SSH to your remote virtual machine (see <a href="https://github.com/Aldream/notepal/wiki/Using-Openstack">here</a> ), type : 
-<code>sudo docker pull polo417/docpal</code></p>
+<code>$ sudo docker pull polo417/docpal</code></p>
 
 <p>Then make sure the image is present in your image list :
 <code>$ sudo docker images</code></p>
@@ -75,7 +75,7 @@ Otherwise, you can skip this step. Be careful : if your container has already st
 <code>$ sudo docker ps</code>
 And have a look at the field "Ports". "Port2"->"Port1" means that the original port "Port1" was mapped to "Port2" in the container.</p>
 
-<p><img src="https://raw.github.com/Aldream/notepal/wiki/images/docker_ps.png" alt="docker ps" title="" /></p>
+<p><img src="https://raw.github.com/Aldream/notepal/gh-pages/images/docker_ps.png" alt="docker ps" title="" /></p>
 
 <p>To see the output of the application and see if no error occurred :
 <code>$ sudo docker logs [containerID]</code></p>
