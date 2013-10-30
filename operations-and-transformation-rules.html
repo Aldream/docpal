@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Notepal : Jupiter System - Collaborative Editing - Applied to Sticky Notes" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Notepal - Operations & Transformation Rules</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/Aldream/notepal">View on GitHub</a>
+
+          <h1 id="project_title"><a href="index.html" style="color:#fff;">Notepal</a></h1>
+          <h2 id="project_tagline">Jupiter System - Collaborative Editing - Applied to Sticky Notes</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/Aldream/notepal/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/Aldream/notepal/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+<h3 id="operations">Operations</h3>
+
+<p>For our demo, the following operations have been implemented for our Jupiter System:</p>
+
+<h4 id="sadd">sAdd</h4>
+
+<ul>
+<li>Parameters:
+<ul><li>id - ID of the note</li>
+<li>type - Type of note (not used yet)</li>
+<li>text - Content of the note</li>
+<li>x - Horizontal position</li>
+<li>y - Vertical position</li></ul></li>
+<li>This operation creates a new note with the given properties.</li>
+</ul>
+
+<h4 id="sdel">sDel</h4>
+
+<ul>
+<li>Parameters:
+<ul><li>id - ID of the note to delete</li></ul></li>
+<li>This operation first edits the status of the note to <em>deleted</em>. Then if the operation is acknoledged by all the clients, the note is properly deleted from the server (though not from the DB)</li>
+</ul>
+
+<h4 id="sdrag">sDrag</h4>
+
+<ul>
+<li>Parameters:
+<ul><li>id - ID of the note</li>
+<li>x - Horizontal position</li>
+<li>y - Vertical position</li></ul></li>
+<li>This operation moves the chosen note to a new position, and edits its status to <em>dragged</em>.</li>
+</ul>
+
+<h4 id="cinsdeprecatedusesins">cIns /!\ Deprecated, use sIns</h4>
+
+<ul>
+<li>Parameters:
+<ul><li>char - Character to insert</li>
+<li>pos - Position of the insertion</li>
+<li>id - ID of the note to edit</li></ul></li>
+<li>This operation inserts the character <em>char</em> in the text of the note ###<em>id</em>, at the position <em>pos</em>. The positions of the following characters are updated.</li>
+</ul>
+
+<h4 id="cdeldeprecatedusesdel">cDel /!\ Deprecated, use sDel</h4>
+
+<ul>
+<li>Parameters:
+<ul><li>pos - Position of the character to delete</li>
+<li>id - ID of the note to edit</li></ul></li>
+<li>This operation deletes the character at the position <em>pos</em> in the text of the note ###<em>id</em>. The positions of the following characters are updated.</li>
+</ul>
+
+<h4 id="sins">sIns</h4>
+
+<ul>
+<li>Parameters:
+<ul><li>str - String to insert</li>
+<li>pos - Position of the insertion</li>
+<li>id - ID of the note to edit</li></ul></li>
+<li>This operation inserts the string <em>str</em> in the text of the note ###<em>id</em>, at the position <em>pos</em>. The positions of the following characters are updated.</li>
+</ul>
+
+<h4 id="sdel">sDel</h4>
+
+<ul>
+<li>Parameters:
+<ul><li>pos - Position of the 1st character of the string to delete</li>
+<li>size - Number of characters to delete</li>
+<li>id - ID of the note to edit</li></ul></li>
+<li>This operation deletes the characters from <em>pos</em> to <em>pos+size</em> in the text of the note ###<em>id</em>. The positions of the following characters are updated.</li>
+</ul>
+
+<h3 id="transformationrules">Transformation Rules</h3>
+
+<p>In order to solve conflict, the function <em>xform</em> applies some modifications for both operations, depending of which couple it is.
+You will find here the transformations we chose to solve logically the conflicts without any loss of information.</p>
+
+<h4 id="localcinsvsincomingcins">Local cIns VS Incoming cIns</h4>
+
+<pre><code>xform( cIns(p, c, id), cIns(p', c', id') ) :-
+    if (id != id') then return {cIns(p, c, id), cIns(p', c', id')} // no collision
+    if (p &gt;= p') then return {cIns(p+1,c), cIns(p',c')} // we arbitrarily decide to place the char from the server first. 
+    if (p &lt; p') then return {cIns(p,c), cIns(p'+1,c')}
+</code></pre>
+
+<h4 id="localcdelvsincomingcdel">Local cDel VS Incoming cDel</h4>
+
+<pre><code>xform( cDel(p, id), cDel(p', id') ) :-
+    if (id != id') then return {cDel(p, id), cDel(p', id')} // no collision
+    if (p &gt; p') then return {cDel(p-1), cDel(p')}
+    if (p &lt; p') then return {cDel(p), cDel(p'-1)}
+    if (p = p') then return {no-op, no-op}
+</code></pre>
+
+<h4 id="localcdelvsincomingcins">Local cDel VS Incoming cIns</h4>
+
+<pre><code>xform( cDel(p, id), cIns(p', c', id') ) :-
+    if (id != id') then return {cDel(p, id), cIns(p', c', id')} // no collision
+    if (p &gt;= p') then return {cDel(p+1), cIns(p',c')}
+    if (p &lt; p') then return {cDel(p), cIns(p'-1,c')}
+</code></pre>
+
+<h4 id="localcinsvsincomingcdel">Local cIns VS Incoming cDel</h4>
+
+<pre><code>xform( cIns(p, c, id), cDel(p', id') ) :-
+    if (id != id') then return {cIns(p, c, id), cDel(p', id')} // no collision
+    if (p &gt; p') then return {cIns(p,c), cDel(p'+1)}
+    if (p =&lt; p') then return {cIns(p-1,c), cDel(p')}
+</code></pre>
+
+<h4 id="localsinsvsincomingsins">Local sIns VS Incoming sIns</h4>
+
+<pre><code>xform( sIns(p, str, id), sIns(p', str', id') ) :-
+    if (id != id') then return {sIns(p, str, id), sIns(p', str', id')} // no collision
+    if (p &gt;= p') then return {sIns(p+|str|,str), sIns(p',str')} // we arbitrarily decide to place the char from the server first. 
+    if (p &lt; p') then return {sIns(p,str), sIns(p'+|str|,str')}
+</code></pre>
+
+<h4 id="localsdelvsincomingsdel">Local sDel VS Incoming sDel</h4>
+
+<pre><code>xform( sDel(p, s, id), sDel(p', s', id') ) :-
+    if (id != id') then return {sDel(p, s, id), sDel(p', s', id')} // no collision
+
+    posEndLoc = p + s,
+    posEndInc = p' + s';
+    if (p' &gt;= posEndLoc) then return {sDel(p, s, id), sDel(p'-s, s', id')}
+    else if (p &gt;= posEndInc) then return {sDel(p-s', s, id), sDel(p'-s, s', id')}
+    else if (p' &gt;= p)
+
+        if (posEndInc &lt;= posEndLoc) // Everything incoMsg was supposed to delete as already been by localMesg.
+
+            s = s-s';
+            if (s == 0) then return {no-op, no-op}
+            else return {sDel(p, s, id), no-op}
+
+        else    // Par of what incoMsg was supposed to delete as already been by localMesg.
+            return {sDel(p, s - (posEndLoc - p'), id), sDel(p, posEndInc - posEndLoc, id')}
+
+    else // if (p' &lt; p)
+
+        if (posEndLoc &lt;= posEndInc)
+
+            s' = s'-s;
+            if (s == 0) then return {no-op, no-op}
+            else return {no-op, sDel(p', s', id')}
+
+        else
+            return {sDel(p', posEndInc - posEndLoc, id), sDel(p', s' - (posEndInc - p), id')}
+</code></pre>
+
+<h4 id="localsdelvsincomingsins">Local sDel VS Incoming sIns</h4>
+
+<pre><code>xform( sDel(p, s, id), sIns(p', str', id') ) :-
+    if (id != id') then return {sDel(p, s, id), sIns(p', str', id')} // no collision
+    if (p &gt;= p') then return {cDel(p+1), sIns(p',str')}
+    if (p &lt; p') then return {cDel(p), sIns(p'-1,str')}
+
+    posEndLoc = p + s,
+    posEndInc = p' + s';
+    if (p' &lt;= p) then return {sDel(p+s', s, id), sIns(p', str', id')}
+    else if (p' &gt;= posEndLoc) then return {sDel(p, s, id), sIns(p'-s', str', id')}
+    else // The insertion is done inside the deleted text. So we still insert there, and cut the delete operation in two parts, for each side of the insertion.
+        // We add a sDel operation to delete the right side.
+        generatePseudoOperation(sDel(posEndInc, s - (p' - p), id'))
+        // ... and we use the current local sDel to delete the left side:
+        then return {sDel(p, p'-p, id), sIns(p, str', id')}
+</code></pre>
+
+<h4 id="localsinsvsincomingsdel">Local sIns VS Incoming sDel</h4>
+
+<pre><code>xform( sIns(p, str, id), sDel(p', s', id') ) :-
+    {opInc, opLoc} = xform( sDel(p', s', id'), sIns(p, str, id) )
+    return {opLoc, opInc}
+</code></pre>
+
+<h4 id="localndelvsincomingtxtopcdelcinssdelsins">Local nDel VS Incoming txtOp=(cDel | cIns | sDel | sIns)</h4>
+
+<pre><code>xform( nDel(id), txtOp(..., id') ) :-
+    if (id != id') then return {nDel(id), txtOp(..., id')} // no collision
+    // We don't apply the deletion of the note:
+    return {no-op, txtOp(...)}
+</code></pre>
+
+<h4 id="localtxtopcdelcinssdelsinsvsincomingndel">Local txtOp=(cDel | cIns | sDel | sIns) VS Incoming nDel</h4>
+
+<pre><code>xform( txtOp(..., id), nDel(id') ) :-
+    if (id != id') then return {txtOp(..., id), nDel(id')} // no collision
+    // We cancel the deletion of the note:
+    return {txtOp(..., id), no-op}
+</code></pre>
+
+<h4 id="localndelvsincomingndel">Local nDel VS Incoming nDel</h4>
+
+<pre><code>xform( nDel(id), nDel(id') ) :-
+    if (id != id') then return {nDel(id), nDel(id')} // no collision
+    // Nothing else to do...
+    return {no-op, no-op}
+</code></pre>
+
+<h4 id="localndelvsincomingnadd">Local nDel VS Incoming nAdd</h4>
+
+<pre><code>xform( nDel(id), nAdd(..., id') ) :-
+    if (id != id') then return {nDel(id), nAdd(..., id')} // no collision
+    // Since the note must have been added to be deleted, we keep it deleted:
+    return {nDel(id), no-op}
+</code></pre>
+
+<h4 id="localndelvsincomingndrag">Local nDel VS Incoming nDrag</h4>
+
+<pre><code>xform( nDel(id), nDrag(x', y', id') ) :-
+    if (id != id') then return {nDel(id), nDrag(x', y', id')} // no collision
+    // We cancel the deletion of the note:
+    return {no-op, nDrag(x', y', id')}
+</code></pre>
+
+<h4 id="localnaddvsincomingtxtopcdelcinssdelsins">Local nAdd VS Incoming txtOp=(cDel | cIns | sDel | sIns)</h4>
+
+<pre><code>xform( nAdd(..., id), txtOp(..., id') ) :-
+    if (id != id') then return {nAdd(..., id), txtOp(..., id')} // no collision
+    // The note must be already created to edit its content...
+    return {no-op, txtOp(...)}
+</code></pre>
+
+<h4 id="localtxtopcdelcinssdelsinsvsincomingnadd">Local txtOp=(cDel | cIns | sDel | sIns) VS Incoming nAdd</h4>
+
+<pre><code>xform( txtOp(..., id), nAdd(..., id') ) :-
+    if (id != id') then return {txtOp(..., id), nAdd(..., id')} // no collision
+    // The note must be already created to edit its content...
+    return {txtOp(..., id), no-op}
+</code></pre>
+
+<h4 id="localnaddvsincomingndel">Local nAdd VS Incoming nDel</h4>
+
+<pre><code>xform( nAdd(..., id), nDel(id') ) :-
+    if (id != id') then return {nAdd(..., id), nDel(id')} // no collision
+    // The note must be already created to delete it...
+    return {no-op, no-op}
+</code></pre>
+
+<h4 id="localnaddvsincomingnadd">Local nAdd VS Incoming nAdd</h4>
+
+<pre><code>xform( nAdd(..., id), nAdd(..., id') ) :-
+    if (id != id') then return {nAdd(..., id), nAdd(..., id')} // no collision
+    // Nothing else to do...
+    return {no-op, no-op}
+</code></pre>
+
+<h4 id="localnaddvsincomingndrag">Local nAdd VS Incoming nDrag</h4>
+
+<pre><code>xform( nAdd(..., id), nDrag(x', y', id') ) :-
+    if (id != id') then return {nAdd(..., id), nDrag(x', y', id')} // no collision
+    // The note must be already created to edit its position...
+    return {no-op, nDrag(x', y', id')}
+</code></pre>
+
+<h4 id="localndragvsincomingtxtopcdelcinssdelsins">Local nDrag VS Incoming txtOp=(cDel | cIns | sDel | sIns)</h4>
+
+<pre><code>xform( nDrag(x', y', id), txtOp(..., id') ) :-
+    return {nDrag(x', y', id), txtOp(..., id')} // no collision
+</code></pre>
+
+<h4 id="localtxtopcdelcinssdelsinsvsincomingndrag">Local txtOp=(cDel | cIns | sDel | sIns) VS Incoming nDrag</h4>
+
+<pre><code>xform( txtOp(..., id), nDrag(x', y', id') ) :-
+    return {txtOp(..., id), nDrag(x', y', id')} // no collision
+</code></pre>
+
+<h4 id="localndragvsincomingndel">Local nDrag VS Incoming nDel</h4>
+
+<pre><code>xform( nDrag(x', y', id), nDel(id') ) :-
+    if (id != id') then return {nDrag(x', y', id), nDel(id')} // no collision
+        // We cancel the deletion of the note:
+    return {nDrag(x', y', id), no-op}
+</code></pre>
+
+<h4 id="localndragvsincomingnadd">Local nDrag VS Incoming nAdd</h4>
+
+<pre><code>xform( nDrag(x', y', id), nAdd(..., id') ) :-
+    if (id != id') then return {nDrag(x', y', id), nAdd(..., id')} // no collision
+    // The note must be already created to edit its position...
+    return {nDrag(x', y', id), no-op}
+</code></pre>
+
+<h4 id="localndragvsincomingndrag">Local nDrag VS Incoming nDrag</h4>
+
+<pre><code>xform( nDrag(x', y', id), nDrag(x', y', id') ) :-
+    // TO DO
+</code></pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Notepal maintained by <a href="https://github.com/Aldream">Aldream</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
